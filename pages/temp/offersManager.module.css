@@ -1,0 +1,213 @@
+.body {
+  position: relative;
+  width: 100% !important;
+  height: 100vh !important;
+  background-color: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 10px;
+  overflow: hidden;
+}
+.reLogin {
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  color: red;
+  background-color: white;
+  border-radius: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transform: scale(2);
+  padding: 0;
+  margin: 0;
+}
+.newDiscountModal {
+  position: absolute;
+  top: 0;
+  left: 0;
+  padding-top: 50px;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  z-index: 100;
+  background-color: rgba(0, 0, 0, 0.91);
+}
+.newDiscountModal * {
+  font-size: 3rem;
+}
+.addbuttonDiv {
+  width: 100%;
+  display: flex;
+  gap: 20px;
+}
+.addbutton {
+  padding: 10px 15px;
+  background-color: var(--blue-500);
+  color: white;
+  border-radius: 10px;
+}
+.addbutton:nth-child(2) {
+  background-color: red;
+}
+.newDiscountInputDiv input {
+  font-size: 3rem;
+  background-color: rgba(255, 255, 255, 1);
+  border: none;
+  width: 100px;
+  margin-left: 10px;
+  padding-left: 5px;
+  border-radius: 10px;
+  font-weight: bold;
+}
+.newDiscountInputDiv input:focus {
+  outline: 4px solid red;
+}
+.offerName {
+  /* padding-top: 10px; */
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 2rem;
+}
+.offerName label {
+  font-weight: bold;
+}
+.offerName input {
+  width: 65%;
+  font-size: 3rem;
+  background-color: rgba(255, 255, 255, 1);
+  border: none;
+  padding-left: 5px;
+  border-radius: 10px;
+}
+.offerName button {
+  background-color: red;
+  color: white;
+  padding: 10px 15px;
+  font-size: 1.7rem;
+  font-weight: bold;
+  border-radius: 10px;
+}
+.offerName button:first-of-type {
+  background-color: var(--blue-500);
+  margin-left: 10px;
+}
+.newOfferButton {
+  background-color: green;
+  color: white;
+  padding: 10px 15px;
+  font-size: 1.7rem;
+  font-weight: bold;
+  border-radius: 10px;
+}
+.insertButton {
+  background-color: var(--blue-500);
+}
+.cancelInsertButton {
+  background-color: red;
+}
+.searchAgainButton {
+  margin-left: 10px;
+  background-color: var(--blue-500);
+}
+.dropdown {
+  margin-top: 10px;
+  width: fit-content;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+}
+.dropdown > * {
+  font-weight: bold;
+  font-size: 1.6rem;
+}
+
+.dropdown > *:nth-child(2) {
+  width: 500px !important;
+}
+.image {
+  border-radius: 5px;
+  width: 200px;
+}
+.productsDiv {
+  overflow-y: scroll;
+  height: calc(100% - 64px);
+}
+.product {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 10px;
+  color: red;
+  font-weight: bold;
+}
+.productDetails {
+  font-size: 1.8rem;
+}
+.productDetails div span {
+  color: white;
+  font-weight: bold;
+}
+.buttons {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-top: 5px;
+}
+.buttons a button,
+.buttons button {
+  background-color: var(--blue-500);
+  color: white;
+  padding: 10px 15px;
+  border-radius: 10px;
+  font-weight: bold;
+  font-size: 1.6rem;
+}
+.discount {
+  font-size: 1.8rem;
+  font-weight: bold;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  justify-content: center;
+  margin-bottom: 10px;
+  flex-direction: column;
+}
+.discount div input {
+  margin-left: 10px;
+  font-size: 1.8rem;
+  width: 70px;
+  border-radius: 10px;
+  height: 35px;
+  border: none;
+  text-align: center;
+}
+.discount div input:focus {
+  outline: 2px solid red;
+}
+.discount div:nth-child(2) input {
+  width: 80%;
+  padding-left: 5px;
+  text-align: left;
+}
+.discount button {
+  width: 180px;
+}
+.title {
+  font-size: 1.6rem;
+  display: flex;
+  justify-content: center;
+  font-weight: bold;
+  margin-bottom: 10px;
+  width: 200px;
+  padding: 10px 5px;
+  border-radius: 10px;
+  background-color: var(--blue-500);
+  user-select: none;
+}
+.scroll {
+  height: calc(100% - 100px);
+  overflow-y: scroll;
+}

@@ -1,0 +1,6 @@
+.body {
+  background-color: rgba(0, 0, 0, 0.705);
+  height: 100vh;
+  color: white;
+  overflow-y: hidden;
+}

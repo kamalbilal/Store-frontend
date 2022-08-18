@@ -1,0 +1,76 @@
+.scroll {
+  padding-top: 10px;
+  overflow-y: scroll;
+  height: calc(100vh - 39px) !important;
+}
+.grid {
+  display: grid;
+  grid-template-columns: 20% auto;
+  margin-bottom: 15px;
+}
+.details {
+  font-size: 1.6rem;
+  color: black;
+  font-weight: bold;
+  user-select: none;
+}
+.details div span {
+  color: white;
+  user-select: text;
+}
+.buttons {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-right: 30px;
+}
+.buttons div {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+.buttons div > * {
+  padding: 10px 15px;
+  border-radius: 8px;
+  background-color: var(--blue-500);
+  color: white;
+  font-weight: bold;
+  font-size: 1.6rem;
+}
+
+.removeBtn {
+  background-color: red !important;
+}
+.changeBtn {
+  background-color: green !important;
+}
+.newDiscount {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.input {
+  display: flex;
+  gap: 20px;
+}
+.input div {
+  color: white;
+}
+.input input {
+  background-color: rgba(0, 0, 0, 0.2);
+  color: white;
+  width: 80px;
+  font-weight: bold;
+}
+.input input:focus {
+  outline: none;
+}
+.noProduct {
+  font-size: 2rem;
+  font-weight: bold;
+  width: 100%;
+  height: calc(100vh - 120px) !important;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
