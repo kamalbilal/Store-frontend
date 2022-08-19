@@ -11,8 +11,10 @@ import { useRef, useEffect, useState } from "react";
 import AllCategories from "./helpers/AllCategories";
 import { useContext } from "react";
 import { CartContext, GiftContext, HeartContext } from "../../../userContext";
+import { useRouter } from "next/router";
 
 function Navbar() {
+  const router = useRouter();
   const { cartNumber, setCartNumber } = useContext(CartContext);
   const { heartNumber, setHeartNumber } = useContext(HeartContext);
   const { giftNumber, setGiftNumber } = useContext(GiftContext);
@@ -21,6 +23,8 @@ function Navbar() {
   const closeDropdownFromAnywhere_Ref = useRef();
   const allCategoriesOverlay = useRef();
   const allCategoriesOverlayBtn = useRef();
+  const searcInputRef = useRef();
+
   const [allCategoriesOverlay_showing, setallCategoriesOverlay_showing] = useState(false);
 
   function show_hide_dropdown(hide = null) {
@@ -70,6 +74,11 @@ function Navbar() {
     };
   }, []);
 
+  function searchClick() {
+    const href = `/search?title=${searcInputRef.current.value}&page=1`;
+    router.push(href);
+  }
+
   return (
     <div className={styles.navWrapper}>
       <div className={styles.logoDiv}>
@@ -90,9 +99,19 @@ function Navbar() {
         >
           <AllCategories HideOverlay_Func={hideAllCategoriesOverlay} />
         </div>
-        <input className={styles.input} placeholder="Search" type="text" />
+        <input
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.keyCode === 13) {
+              searchClick();
+            }
+          }}
+          ref={searcInputRef}
+          className={styles.input}
+          placeholder="Search"
+          type="text"
+        />
 
-        <button className={styles.searchIconDiv}>
+        <button onClick={searchClick} className={styles.searchIconDiv}>
           <IoSearchSharp className={styles.searchIcon} />
         </button>
       </div>
