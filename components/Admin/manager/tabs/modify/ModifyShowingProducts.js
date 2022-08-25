@@ -11,6 +11,8 @@ function ModifyShowingProducts({
   toastOptions,
   modifyDefaultInput,
   insertDefaultInput,
+  insertOfferData,
+  setInsertOfferData,
 }) {
   Number.prototype.round = function (places) {
     return +(Math.round(this + "e+" + places) + "e-" + places);
@@ -167,6 +169,26 @@ function ModifyShowingProducts({
         ...prev,
         [offerId]: { ...modifyOfferData.modifyOfferData[offerId], offers: tempOffers, allProducts: tempAllProducts },
       }));
+    }
+
+    // deleteing in insertDefaultInputValues
+    setInsertDefaultInputValues((prevData) => {
+      const newData = { ...prevData };
+      newData[productId] = 0;
+      return newData;
+    });
+
+    // reseting newDiscount in insertOfferData
+    console.log(insertOfferData);
+    if (insertOfferData) {
+      const tempInsertOfferData = insertOfferData[offerId];
+      for (let index = 0; index < tempInsertOfferData.length; index++) {
+        if (tempInsertOfferData[index]._id === productId) {
+          tempInsertOfferData[index].newDiscount = 0;
+          break;
+        }
+      }
+      setInsertOfferData((prev) => ({ ...prev, [offerId]: tempInsertOfferData }));
     }
 
     // subtracting from adminPageData by offerId

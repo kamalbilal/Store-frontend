@@ -83,6 +83,8 @@ function Manager({ offerId }) {
           insertDefaultInput={{ insertDefaultInputValues, setInsertDefaultInputValues }}
           toast={toast}
           toastOptions={toastOptions}
+          insertOfferData={insertOfferData}
+          setInsertOfferData={setInsertOfferData}
         />
       </div>
       <div ref={insertDivRef} className={cn(styles.insertDiv, styles.none)}>

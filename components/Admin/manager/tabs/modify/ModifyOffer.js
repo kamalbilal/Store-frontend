@@ -12,6 +12,8 @@ function ModifyOffer({
   toast,
   toastOptions,
   insertDefaultInput,
+  insertOfferData,
+  setInsertOfferData,
 }) {
   const router = useRouter();
 
@@ -355,6 +357,8 @@ function ModifyOffer({
             toastOptions={toastOptions}
             modifyDefaultInput={modifyDefaultInput}
             insertDefaultInput={insertDefaultInput}
+            insertOfferData={insertOfferData}
+            setInsertOfferData={setInsertOfferData}
           />
         </div>
       ) : (

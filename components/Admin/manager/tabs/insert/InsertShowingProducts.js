@@ -60,8 +60,14 @@ function InsertShowingProducts({
   }
 
   function alreadyInModify(id) {
-    const contain = modifyOfferData.modifyOfferData[offerId].offers.includes(id);
-    return contain;
+    if (modifyOfferData.modifyOfferData.hasOwnProperty(offerId)) {
+      const contain = modifyOfferData.modifyOfferData[offerId].offers.includes(id);
+      return contain;
+    }
+    // try {
+    // } catch (error) {
+    //   //
+    // }
   }
 
   async function addOfferToServer(e, fromInput) {

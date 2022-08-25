@@ -3,13 +3,7 @@ import styles from "./Product.module.css";
 import { FaShoppingCart, FaHeart } from "react-icons/fa";
 import { useState, useRef, useEffect } from "react";
 
-function Product({
-  ProductLink,
-  ImageLink,
-  ProductName,
-  OrignalPrice,
-  AfterDiscountPrice,
-}) {
+function Product({ ProductLink, ImageLink, ProductName, OrignalPrice, AfterDiscountPrice }) {
   const [addToCart, setAddToCart] = useState(false);
   const [addToHeart, setAddToHeart] = useState(false);
 
@@ -72,30 +66,16 @@ function Product({
   return (
     <div className={styles.container}>
       <div>
-        <Image
-          src={ImageLink}
-          className={styles.image}
-          width={190}
-          height={200}
-          draggable={false}
-        />
+        <Image src={ImageLink} className={styles.image} width={190} height={200} draggable={false} />
       </div>
       <h3 className={styles.productName}>{ProductName}</h3>
       {ShowPrice(OrignalPrice, AfterDiscountPrice)}
       <div className={styles.button}>
-        <button
-          ref={addToCart_Ref}
-          onClick={addToCart_onClick}
-          className={styles.cart}
-        >
+        <button ref={addToCart_Ref} onClick={addToCart_onClick} className={styles.cart}>
           <FaShoppingCart />
           {addToCart === true ? "Added to cart" : "Add to cart"}
         </button>
-        <button
-          ref={addToHeart_Ref}
-          onClick={addToHeart_onClick}
-          className={styles.heart}
-        >
+        <button ref={addToHeart_Ref} onClick={addToHeart_onClick} className={styles.heart}>
           <FaHeart />
         </button>
       </div>
