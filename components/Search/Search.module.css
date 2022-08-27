@@ -1,7 +1,7 @@
-.body {
+/* .body {
   display: grid;
   grid-template-columns: 20% auto;
-}
+} */
 .productData {
   display: flex;
   flex-wrap: wrap;
@@ -87,4 +87,31 @@
   font-size: 1.1rem;
   margin-bottom: 10px;
   color: #666;
+}
+.showMore {
+  display: flex;
+  justify-content: center;
+  margin: 10px 0px;
+  margin-bottom: 50px;
+  display: none;
+}
+.show {
+  display: flex;
+}
+.showMore button {
+  padding: 10px 15px;
+  background-color: var(--blue-500);
+  color: white;
+  border-radius: 5px;
+  font-weight: bold;
+  font-size: 1.6rem;
+  transform: translateX(-40%);
+}
+.loader {
+  display: none;
+  justify-content: center;
+  margin-bottom: 50px;
+}
+.lastProduct {
+  /*  */
 }

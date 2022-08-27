@@ -1,16 +1,21 @@
 import styles from "./Search.module.css";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useContext, createRef } from "react";
 import axios from "axios";
 import Image from "next/image";
 import { FaHeart } from "react-icons/fa";
 import cn from "classnames";
 
-function Search({ title, page }) {
-  const [searchedData, setSearchedData] = useState([]);
-  const [pageNumber, setPageNumber] = useState(1);
-  const useEffectRun_ref = useRef(true);
+function Search({ title, page, data, titlePage, pageNumberState, pageCounterState, router }) {
+  const { searchedData, setSearchedData } = data;
+  const { pageNumber, setPageNumber } = pageNumberState;
+  const { pageCounter, setPageCounter } = pageCounterState;
 
-  async function getSearchedProducts() {
+  const showMoreBtnDivRef = useRef();
+  const loaderRef = useRef();
+
+  async function getSearchedProducts(pagenumber) {
+    console.log({ titlePage, router, runtime: searchedData[title][titlePage]["runtime"] });
+    if (searchedData[title][titlePage]["runtime"] === false) return;
     let options = {
       url: "http://localhost:8000/getsearchedproducts",
       method: "POST",
@@ -22,102 +27,139 @@ function Search({ title, page }) {
       },
       data: {
         title: title,
-        pageNumber: pageNumber,
+        pageNumber: pagenumber,
         pwd: "Kamal",
       },
     };
 
-    const response = await axios(options).catch((error) => console.log(error));
-    if (!response) return console.log("response error");
-    if (response.data.success === true) {
-      console.log(pageNumber);
-      console.log(response.data);
-      if (response.data.products.length > 0) {
-        setSearchedData((prev) => [...prev, ...response.data.products]);
+    setTimeout(async () => {
+      showLoader();
+
+      const response = await axios(options).catch((error) => console.log(error));
+      hideLoader();
+      if (!response) return console.log("response error");
+      if (response.data.success === true) {
+        console.log(pageNumber);
+        console.log(response.data);
+        if (response.data.products.length > 0) {
+          setSearchedData((prev) => ({
+            ...prev,
+            [title]: {
+              ...searchedData[title],
+              [titlePage]: {
+                ...searchedData[title][titlePage],
+                data: [...searchedData[title][titlePage]["data"], ...response.data.products],
+              },
+            },
+          }));
+        } else {
+          setPageNumber((prev) => prev - 1);
+          //
+        }
       }
-    }
+    }, 5000);
   }
 
-  useEffect(() => {
-    getSearchedProducts();
-  }, [pageNumber]);
+  function showLoader() {
+    loaderRef.current.style.display = "flex";
+  }
+  function hideLoader() {
+    loaderRef.current.style.display = "none";
+  }
+
+  // useEffect(() => {
+  //   if (searchedData.hasOwnProperty(titlePage) && searchedData[titlePage].length > 0) {
+  //     const allProducts = document.querySelectorAll(".allSearchedProducts");
+  //     const observer = new IntersectionObserver(
+  //       (entries) => {
+  //         entries.forEach((entry) => {
+  //           if (entry.isIntersecting) {
+  //             entry.target.classList.add("show");
+  //           } else {
+  //             entry.target.classList.remove("show");
+  //           }
+  //         });
+  //       },
+  //       {
+  //         rootMargin: "200px",
+  //       }
+  //     );
+
+  //     allProducts.forEach((element) => {
+  //       observer.observe(element);
+  //     });
+
+  //     return () => {
+  //       observer.disconnect();
+  //     };
+  //   }
+  // }, [searchedData[titlePage]]);
 
   useEffect(() => {
-    console.log(searchedData);
-  }, [searchedData]);
+    let observer;
+    if (searchedData.hasOwnProperty(title) && searchedData[title].hasOwnProperty(titlePage)) {
+      if (searchedData[title][titlePage]["runtime"] === false) {
+        hideLoader();
+        showMoreBtnDivRef.current.classList.add(styles.show);
+      }
 
-  useEffect(() => {
-    if (searchedData.length > 0) {
-      const allProducts = document.querySelectorAll(".allSearchedProducts");
-      const observer = new IntersectionObserver(
-        (entries) => {
-          entries.forEach((entry) => {
-            if (entry.isIntersecting) {
-              entry.target.classList.add("show");
-            } else {
-              entry.target.classList.remove("show");
-            }
-          });
-        },
-        {
-          rootMargin: "200px",
-        }
-      );
+      if (searchedData[title][titlePage]["runtime"] === true && searchedData[title][titlePage]["data"].length > 0) {
+        const lastProduct = document.querySelector(".allSearchedProductsx:last-of-type");
+        observer = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((entry) => {
+              if (entry.isIntersecting) {
+                observer.unobserve(entry.target);
+                observer.disconnect();
+                if (pageCounter[titlePage] <= 2) {
+                  const pagenumber = pageNumber + 1;
+                  getSearchedProducts(pagenumber);
+                  setPageNumber((prev) => prev + 1);
+                  setPageCounter((prev) => ({ ...prev, [titlePage]: pageCounter[titlePage] + 1 }));
+                } else {
+                  showMoreBtnDivRef.current.classList.add(styles.show);
+                }
+              }
+            });
+          },
+          {
+            // rootMargin: "500px",
+          }
+        );
 
-      allProducts.forEach((element) => {
-        observer.observe(element);
-      });
-
-      return () => {
-        observer.disconnect();
-      };
+        observer.observe(lastProduct);
+      }
     }
-  }, [searchedData]);
-
-  useEffect(() => {
-    if (searchedData.length > 0) {
-      const lastProduct = document.querySelector(".allSearchedProducts:last-of-type");
-      const observer = new IntersectionObserver(
-        (entries) => {
-          entries.forEach((entry) => {
-            if (entry.isIntersecting) {
-              console.log("is Showing");
-              setPageNumber((prev) => prev + 1);
-              observer.unobserve(entry.target);
-            }
-          });
-        },
-        {
-          rootMargin: "500px",
-        }
-      );
-
-      observer.observe(lastProduct);
-
-      return () => {
+    return () => {
+      if (observer) {
         observer.disconnect();
-      };
-    }
-  }, [searchedData]);
+      }
+    };
+  }, [searchedData[title][titlePage]]);
 
-  function test(params) {
-    setSearchedData((prev) => [...prev, ...searchedData, ...searchedData]);
+  function showMore() {
+    // setPageCounter(1);
+    setSearchedData((prev) => ({
+      ...prev,
+      [title]: {
+        ...searchedData[title],
+        [titlePage]: {
+          ...searchedData[title][titlePage],
+          runtime: false,
+        },
+      },
+    }));
+    setPageNumber((prev) => prev + 1);
+    router.push(`/search?title=${title}&page=${pageNumber + 1}`);
   }
 
   return (
-    <div className={styles.body}>
-      <div>
-        left
-        <button onClick={test} style={{ position: "fixed" }}>
-          button
-        </button>
-      </div>
-      <div>
-        {searchedData.length > 0 ? (
-          <div className={styles.productData}>
-            {searchedData.map((element, index) => {
+    <div>
+      <div className={styles.productData}>
+        {searchedData.hasOwnProperty(title) && searchedData[title].hasOwnProperty(titlePage)
+          ? searchedData[title][titlePage]["data"].map((element, index) => {
               return (
-                <div id={index} key={index} className={cn(styles.product, "allSearchedProducts")}>
+                <div id={index} key={index} className={cn(styles.product, "allSearchedProductsx")}>
                   <div className={styles.image}>
                     <Image src={element.images[0]} width={230} height={230} objectFit="contain" />
                     <button
@@ -149,11 +191,15 @@ function Search({ title, page }) {
                   </div>
                 </div>
               );
-            })}
-          </div>
-        ) : (
-          ""
-        )}
+            })
+          : ""}
+      </div>
+
+      <div ref={showMoreBtnDivRef} className={styles.showMore}>
+        <button onClick={showMore}>Show More</button>
+      </div>
+      <div ref={loaderRef} className={styles.loader}>
+        <div className="lds-dual-ring"></div>
       </div>
     </div>
   );

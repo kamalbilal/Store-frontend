@@ -13,6 +13,9 @@ import {
   ModifyDefaultInputValues_context,
   InsertDefaultInputValues_context,
   InsertOfferDataCount_context,
+  SearchedPageData_context,
+  SearchPageNumber_context,
+  SearchUrlHistory_context,
 } from "../userContext";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
@@ -31,6 +34,9 @@ function MyApp({ Component, pageProps }) {
   const [modifyDefaultInputValues, setModifyDefaultInputValues] = useState(null); // dafault value
   const [insertDefaultInputValues, setInsertDefaultInputValues] = useState(null); // dafault value
   const [totalCount, setTotalCount] = useState(null); // dafault value
+  const [searchedData, setSearchedData] = useState({}); // dafault value
+  const [pageNumber, setPageNumber] = useState(null); // dafault value
+  const [searchUrlHistory, setSearchUrlHistory] = useState({}); // dafault value
 
   const router = useRouter();
   const forbiddenLinks = ["/register", "/login", "/register/authentication", "/login/authentication"];
@@ -77,21 +83,27 @@ function MyApp({ Component, pageProps }) {
       );
     } else {
       return (
-        <VisitedLinksArray.Provider value={{ visitedLinksArray, setVisitedLinksArray }}>
-          <HeartContext.Provider value={{ heartNumber, setHeartNumber }}>
-            <GiftContext.Provider value={{ giftNumber, setGiftNumber }}>
-              <CartContext.Provider value={{ cartNumber, setCartNumber }}>
-                <div className={styles.navBar}>
-                  <Navbar />
-                </div>
-                <div className={styles.content}>
-                  <Component {...pageProps} />
-                </div>
-                <Footer />
-              </CartContext.Provider>
-            </GiftContext.Provider>
-          </HeartContext.Provider>
-        </VisitedLinksArray.Provider>
+        <SearchUrlHistory_context.Provider value={{ searchUrlHistory, setSearchUrlHistory }}>
+          <SearchPageNumber_context.Provider value={{ pageNumber, setPageNumber }}>
+            <SearchedPageData_context.Provider value={{ searchedData, setSearchedData }}>
+              <VisitedLinksArray.Provider value={{ visitedLinksArray, setVisitedLinksArray }}>
+                <HeartContext.Provider value={{ heartNumber, setHeartNumber }}>
+                  <GiftContext.Provider value={{ giftNumber, setGiftNumber }}>
+                    <CartContext.Provider value={{ cartNumber, setCartNumber }}>
+                      <div className={styles.navBar}>
+                        <Navbar />
+                      </div>
+                      <div className={styles.content}>
+                        <Component {...pageProps} />
+                      </div>
+                      <Footer />
+                    </CartContext.Provider>
+                  </GiftContext.Provider>
+                </HeartContext.Provider>
+              </VisitedLinksArray.Provider>
+            </SearchedPageData_context.Provider>
+          </SearchPageNumber_context.Provider>
+        </SearchUrlHistory_context.Provider>
       );
     }
   }

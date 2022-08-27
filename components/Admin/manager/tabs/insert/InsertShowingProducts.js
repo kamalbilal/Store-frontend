@@ -64,10 +64,6 @@ function InsertShowingProducts({
       const contain = modifyOfferData.modifyOfferData[offerId].offers.includes(id);
       return contain;
     }
-    // try {
-    // } catch (error) {
-    //   //
-    // }
   }
 
   async function addOfferToServer(e, fromInput) {
