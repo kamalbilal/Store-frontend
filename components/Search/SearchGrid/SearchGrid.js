@@ -161,7 +161,7 @@ function SearchGrid({ title, page, data, titlePage, pageNumberState, pageCounter
         {searchedData.hasOwnProperty(title) && searchedData[title].hasOwnProperty(titlePage)
           ? searchedData[title][titlePage]["data"].map((element, index) => {
               return (
-                <div id={index} key={index} className={cn(styles.product, "allSearchedProducts")}>
+                <button id={index} key={index} className={cn(styles.product, "allSearchedProducts")}>
                   <div className={styles.image}>
                     <Image src={element.images[0]} width={230} height={230} objectFit="contain" />
                     <button
@@ -191,7 +191,7 @@ function SearchGrid({ title, page, data, titlePage, pageNumberState, pageCounter
                     <div className={styles.sold}>20 Sold</div>
                     <div className={styles.shipping}>Free Shipping</div>
                   </div>
-                </div>
+                </button>
               );
             })
           : ""}
