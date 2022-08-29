@@ -1,15 +1,16 @@
-import styles from "./Search.module.css";
+import styles from "./SearchGrid.module.css";
 import { useEffect, useState, useRef, useContext, createRef } from "react";
 import axios from "axios";
 import Image from "next/image";
 import { FaHeart } from "react-icons/fa";
 import cn from "classnames";
 
-function Search({ title, page, data, titlePage, pageNumberState, pageCounterState, router }) {
+function SearchGrid({ title, page, data, titlePage, pageNumberState, pageCounterState, router,displayInGrid }) {
   const { searchedData, setSearchedData } = data;
   const { pageNumber, setPageNumber } = pageNumberState;
   const { pageCounter, setPageCounter } = pageCounterState;
 
+  const mainDivRef = useRef();
   const showMoreBtnDivRef = useRef();
   const loaderRef = useRef();
 
@@ -32,32 +33,32 @@ function Search({ title, page, data, titlePage, pageNumberState, pageCounterStat
       },
     };
 
-    setTimeout(async () => {
-      showLoader();
+    // setTimeout(async () => {
+    showLoader();
 
-      const response = await axios(options).catch((error) => console.log(error));
-      hideLoader();
-      if (!response) return console.log("response error");
-      if (response.data.success === true) {
-        console.log(pageNumber);
-        console.log(response.data);
-        if (response.data.products.length > 0) {
-          setSearchedData((prev) => ({
-            ...prev,
-            [title]: {
-              ...searchedData[title],
-              [titlePage]: {
-                ...searchedData[title][titlePage],
-                data: [...searchedData[title][titlePage]["data"], ...response.data.products],
-              },
+    const response = await axios(options).catch((error) => console.log(error));
+    hideLoader();
+    if (!response) return console.log("response error");
+    if (response.data.success === true) {
+      console.log(pageNumber);
+      console.log(response.data);
+      if (response.data.products.length > 0) {
+        setSearchedData((prev) => ({
+          ...prev,
+          [title]: {
+            ...searchedData[title],
+            [titlePage]: {
+              ...searchedData[title][titlePage],
+              data: [...searchedData[title][titlePage]["data"], ...response.data.products],
             },
-          }));
-        } else {
-          setPageNumber((prev) => prev - 1);
-          //
-        }
+          },
+        }));
+      } else {
+        setPageNumber((prev) => prev - 1);
+        //
       }
-    }, 5000);
+    }
+    // }, 5000);
   }
 
   function showLoader() {
@@ -104,7 +105,7 @@ function Search({ title, page, data, titlePage, pageNumberState, pageCounterStat
       }
 
       if (searchedData[title][titlePage]["runtime"] === true && searchedData[title][titlePage]["data"].length > 0) {
-        const lastProduct = document.querySelector(".allSearchedProductsx:last-of-type");
+        const lastProduct = document.querySelector(".allSearchedProducts:last-of-type");
         observer = new IntersectionObserver(
           (entries) => {
             entries.forEach((entry) => {
@@ -152,14 +153,15 @@ function Search({ title, page, data, titlePage, pageNumberState, pageCounterStat
     setPageNumber((prev) => prev + 1);
     router.push(`/search?title=${title}&page=${pageNumber + 1}`);
   }
+  
 
   return (
-    <div>
+    <div ref={mainDivRef} className={displayInGrid === true ? styles.grid: styles.list}>
       <div className={styles.productData}>
         {searchedData.hasOwnProperty(title) && searchedData[title].hasOwnProperty(titlePage)
           ? searchedData[title][titlePage]["data"].map((element, index) => {
               return (
-                <div id={index} key={index} className={cn(styles.product, "allSearchedProductsx")}>
+                <div id={index} key={index} className={cn(styles.product, "allSearchedProducts")}>
                   <div className={styles.image}>
                     <Image src={element.images[0]} width={230} height={230} objectFit="contain" />
                     <button
@@ -205,4 +207,4 @@ function Search({ title, page, data, titlePage, pageNumberState, pageCounterStat
   );
 }
 
-export default Search;
+export default SearchGrid;

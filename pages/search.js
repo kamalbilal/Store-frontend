@@ -1,7 +1,8 @@
-import Search from "../components/Search/Search";
+// import Search from "../components/Search/Search";
 import { SearchedPageData_context, SearchPageNumber_context, SearchUrlHistory_context } from "../userContext";
 import { useContext, useEffect, useState, useRef } from "react";
 import { useRouter } from "next/router";
+import SearchMain from "../components/Search/SearchMain";
 
 function search({ urlTitle, urlPage, data }) {
   const router = useRouter();
@@ -10,18 +11,16 @@ function search({ urlTitle, urlPage, data }) {
   const [page, setPage] = useState(urlPage);
   const [titlePage, setTitlePage] = useState(`${title}_${urlPage}`);
   const [pageCounter, setPageCounter] = useState();
+  const [displayInGrid, setDisplayInGrid] = useState(true);
 
   const { searchedData, setSearchedData } = useContext(SearchedPageData_context);
   const { pageNumber, setPageNumber } = useContext(SearchPageNumber_context);
   const { searchUrlHistory, setSearchUrlHistory } = useContext(SearchUrlHistory_context);
 
-  const titlePageRef = useRef(`${title}_${urlPage}`);
-
   useEffect(() => {
     const currentPage = isNaN(router.query.page) ? "" : router.query.page * 1;
     const titlePage = `${title}_${currentPage}`;
     console.log(titlePage);
-    titlePageRef.current = titlePage;
     setTitlePage(titlePage);
     setTitle(router.query.title);
     setPage(router.query.page);
@@ -129,7 +128,7 @@ function search({ urlTitle, urlPage, data }) {
         </button>
       </div>
       {searchedData.hasOwnProperty(title) && searchedData[title].hasOwnProperty(titlePage) ? (
-        <Search
+        <SearchMain
           data={{ searchedData, setSearchedData }}
           title={title}
           titlePage={titlePage}
@@ -137,7 +136,7 @@ function search({ urlTitle, urlPage, data }) {
           pageNumberState={{ pageNumber, setPageNumber }}
           pageCounterState={{ pageCounter, setPageCounter }}
           router={router}
-          titlePageRef={titlePageRef}
+          displayIn={{ displayInGrid, setDisplayInGrid }}
         />
       ) : (
         "not"

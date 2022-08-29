@@ -1,0 +1,29 @@
+.viewDiv {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.view {
+  margin-right: 30px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.view p {
+  font-size: 1.5rem;
+  margin: 0;
+  padding: 0;
+}
+.blueColor {
+  color: var(--blue-500);
+}
+.grid {
+  cursor: pointer;
+  font-size: 2.2rem;
+  transform: translateY(3px);
+}
+.list {
+  font-size: 1.7rem !important;
+  cursor: pointer;
+  transform: translateY(2.5px);
+}
