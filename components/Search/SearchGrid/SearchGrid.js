@@ -10,7 +10,6 @@ function SearchGrid({ title, page, data, totalProductsCount, titlePage, pageNumb
   const { pageNumber, setPageNumber } = pageNumberState;
   const { pageCounter, setPageCounter } = pageCounterState;
 
-  const [noMoreProducts_State, setNoMoreProducts_State] = useState(false)
   const [isGettingSearchedProducts, setIsGettingSearchedProducts] = useState(false)
 
   const mainDivRef = useRef();
@@ -42,8 +41,8 @@ function SearchGrid({ title, page, data, totalProductsCount, titlePage, pageNumb
     // setTimeout(async () => {
     showLoader();
     const response = await axios(options).catch((error) => console.log(error));
-    hideLoader();
     setIsGettingSearchedProducts(false)
+    hideLoader();
     if (!response) return console.log("response error");
     if (response.data.success === true) {
       console.log(pageNumber);
@@ -78,7 +77,7 @@ function SearchGrid({ title, page, data, totalProductsCount, titlePage, pageNumb
     showMoreBtnDivRef.current.classList.remove(styles.show);
   }
   function show_ShowMoreBtn() {
-    // hideLoader()
+    hideLoader()
     showMoreBtnDivRef.current.classList.add(styles.show);
   }
   function hide_noMoreProducts() {
