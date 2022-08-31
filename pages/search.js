@@ -4,9 +4,10 @@ import { useContext, useEffect, useState, useRef } from "react";
 import { useRouter } from "next/router";
 import SearchMain from "../components/Search/SearchMain";
 
-function search({ urlTitle, urlPage, data }) {
+function search({ urlTitle, urlPage, data, count }) {
   const router = useRouter();
   const totalProductLength = 10;
+  const [totalProductsCount, setTotalProductsCount] = useState(count);
   const [title, setTitle] = useState(urlTitle);
   const [page, setPage] = useState(urlPage);
   const [titlePage, setTitlePage] = useState(`${title}_${urlPage}`);
@@ -16,6 +17,12 @@ function search({ urlTitle, urlPage, data }) {
   const { searchedData, setSearchedData } = useContext(SearchedPageData_context);
   const { pageNumber, setPageNumber } = useContext(SearchPageNumber_context);
   const { searchUrlHistory, setSearchUrlHistory } = useContext(SearchUrlHistory_context);
+
+
+  useEffect(() => {
+    console.log(totalProductsCount);
+  }, [totalProductsCount])
+  
 
   useEffect(() => {
     const currentPage = isNaN(router.query.page) ? "" : router.query.page * 1;
@@ -42,14 +49,13 @@ function search({ urlTitle, urlPage, data }) {
       console.log("setting new data");
       setSearchedData((prev) => ({
         ...prev,
-        [title]: { ...searchedData[title], [titlePage]: { runtime: true, data } },
+        [title]: {...searchedData[title] , [titlePage]: { runtime: true, noMoreProducts: false, data } },
       }));
       setPageNumber(isNaN(page) ? 1 : 1 * page);
     } else if (!searchedData[title].hasOwnProperty(titlePage)) {
-      console.log("runngnnnnnn");
       setSearchedData((prev) => ({
         ...prev,
-        [title]: { ...searchedData[title], [titlePage]: { runtime: true, data } },
+        [title]: { ...searchedData[title], [titlePage]: { runtime: true, noMoreProducts: false, data } },
       }));
       // setPageNumber(isNaN(page) ? 1 : 1 * urlPage);
     } else {
@@ -58,7 +64,12 @@ function search({ urlTitle, urlPage, data }) {
   }, [router.asPath]);
 
   useEffect(() => {
-    console.log("running useeffect");
+    
+    console.log(searchedData);
+  }, [searchedData])
+  
+
+  useEffect(() => {
     setPageNumber(isNaN(page) ? 1 : 1 * page);
   }, []);
 
@@ -68,27 +79,12 @@ function search({ urlTitle, urlPage, data }) {
     }
   }, [titlePage]);
 
-  useEffect(() => {
-    console.log({ searchedData });
-  }, [searchedData]);
-  useEffect(() => {
-    console.log({ searchUrlHistory });
-  }, [searchUrlHistory]);
-
   function goBack() {
-    // let isBack = false;
     const current = location.href;
 
     let currentPage = current.split("page=")[1];
     currentPage = isNaN(currentPage) ? "" : currentPage * 1;
 
-    // const previousPage = isNaN(router.query.page) ? "" : router.query.page * 1;
-
-    // if (previousPage > currentPage) {
-    //   isBack = true;
-    // }
-
-    // const titlePage = `${title}_${currentPage}`;
     const currentPageIndex = searchUrlHistory[title]["pages"].indexOf(String(currentPage));
     console.log({ index: searchUrlHistory[title]["pages"].indexOf(String(currentPage)) });
     let totalProductsCount = 0;
@@ -96,16 +92,8 @@ function search({ urlTitle, urlPage, data }) {
     for (let index = 0; index <= currentPageIndex; index++) {
       totalProductsCount += searchedData[title][keys[index]]["data"].length;
     }
-    console.log(totalProductsCount);
     setPageNumber(parseInt(totalProductsCount / totalProductLength));
-    // if (isBack) {
-    // console.log(searchedData);
-    // const currentPageDataLength = searchedData[title][titlePage]["data"].length;
-    // const number = parseInt(currentPageDataLength / totalProductLength);
-    // setPageNumber(number);
-    // } else {
-    // setPageNumber((prev) => prev + 1);
-    // }
+    
   }
 
   useEffect(() => {
@@ -113,7 +101,7 @@ function search({ urlTitle, urlPage, data }) {
     return () => {
       window.removeEventListener("popstate", goBack);
     };
-  }, [pageNumber, searchUrlHistory, router]);
+  }, [pageNumber, searchUrlHistory, router.asPath]);
 
   useEffect(() => {
     console.log("pagenumber: " + pageNumber);
@@ -123,13 +111,14 @@ function search({ urlTitle, urlPage, data }) {
     <div style={{ display: "grid", gridTemplateColumns: "20% auto" }}>
       <div>
         left
-        <button onClick={() => console.log({ searchedData, pageNumber, titlePage })} style={{ position: "fixed" }}>
+        <button onClick={() => console.log({ searchedData, pageNumber, titlePage, pageCounter })} style={{ position: "fixed" }}>
           button
         </button>
       </div>
       {searchedData.hasOwnProperty(title) && searchedData[title].hasOwnProperty(titlePage) ? (
         <SearchMain
           data={{ searchedData, setSearchedData }}
+          totalProductsCount={totalProductsCount}
           title={title}
           titlePage={titlePage}
           page={page}
@@ -137,6 +126,7 @@ function search({ urlTitle, urlPage, data }) {
           pageCounterState={{ pageCounter, setPageCounter }}
           router={router}
           displayIn={{ displayInGrid, setDisplayInGrid }}
+          totalProductLength={totalProductLength}
         />
       ) : (
         "not"
@@ -163,14 +153,15 @@ export async function getServerSideProps({ query }) {
       Accept: "application/json",
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ pageNumber: page, title }),
+    body: JSON.stringify({ pageNumber: page, title, isServer: true }),
   });
   response = await response.json();
 
   const data = response.products;
+  const count = response.count;
 
   return {
-    props: { urlTitle: title, urlPage: page, data },
+    props: { urlTitle: title, urlPage: page, data, count },
   };
 }
 

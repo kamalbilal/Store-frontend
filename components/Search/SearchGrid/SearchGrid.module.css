@@ -2,6 +2,10 @@
   display: grid;
   grid-template-columns: 20% auto;
 } */
+.product {
+  cursor: pointer;
+}
+
 .grid .productData {
   display: flex;
   flex-wrap: wrap;

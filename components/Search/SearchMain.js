@@ -5,7 +5,7 @@ import { ImList2 } from "react-icons/im";
 import cn from "classnames";
 import { useEffect } from "react";
 
-function SearchMain({ data, title, titlePage, page, pageNumberState, pageCounterState, router, displayIn }) {
+function SearchMain({ data,totalProductsCount, title, titlePage, page, pageNumberState, pageCounterState, router, displayIn,totalProductLength}) {
   const { displayInGrid, setDisplayInGrid } = displayIn;
 
   useEffect(() => {
@@ -46,6 +46,7 @@ function SearchMain({ data, title, titlePage, page, pageNumberState, pageCounter
       
         <SearchGrid
           data={data}
+          totalProductsCount={totalProductsCount}
           title={title}
           titlePage={titlePage}
           page={page}
@@ -53,6 +54,7 @@ function SearchMain({ data, title, titlePage, page, pageNumberState, pageCounter
           pageCounterState={pageCounterState}
           router={router}
           displayInGrid={displayInGrid}
+          totalProductLength={totalProductLength}
         />
      
     </div>
