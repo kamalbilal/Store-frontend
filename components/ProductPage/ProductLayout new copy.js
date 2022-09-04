@@ -31,24 +31,25 @@ function ProductLayout({ productData }) {
   const [allImages, setAllImages] = useState(productData["images"]);
   const [mainImage, setMainImage] = useState(productData["images"][0]);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  let sizeColors_allRefs = useRef();
-  sizeColors_allRefs = {};
+  const sizeColors_allRefs = {};
   const [sizeColorsSelectedData, setSizeColorsSelectedData] = useState({});
   const [defaultQuality, setDefaultQuality] = useState(productData["quantityAvaliable"]);
+  const [mappingQuality_state, setMappingQuality_state] = useState();
   const [onClickGetSelectedItems, setOnClickGetSelectedItems] = useState();
+  const mappingQuality = {};
+  const [containHash, setContainHash] = useState(false);
   const [quantity, setQuantity] = useState(1);
   const [inputFocused, setInputFocused] = useState(false);
   const plusBtnRef = useRef();
   const quantityInput = useRef();
   const [addToCart, setAddToCart] = useState(false);
   const [maxPurchaseLimit, setMaxPurchaseLimit] = useState(productData["maxPurchaseLimit"]);
-  const [priceList, setPriceList] = useState(productData["priceList"]);
-  const [currentPrice, setCurrentPrice] = useState(productData["maxPrice"]);
 
   const [mainshippingFee, setMainshippingFee] = useState();
   const [shippingData, setShippingData] = useState();
   const [shippingDataSelected, setShippingDataSelected] = useState(null);
   const [allShippingCharges, setAllShippingCharges] = useState();
+  const [productSelectedDetailsIndex, setProductSelectedDetailsIndex] = useState({});
   const [toggleCheckBtn, setToggleCheckBtn] = useState({});
   const [productSelectedImageForCart, setProductSelectedImageForCart] = useState();
   const [productDataContainImage, setProductDataContainImage] = useState(false);
@@ -58,13 +59,126 @@ function ProductLayout({ productData }) {
   const addToCart_BuyNow_ref = useRef();
   const addToCart_AddToCart_ref = useRef();
   const cartErrorRef = useRef();
+  const runUseEffect1 = useRef(true);
   const runUseEffect2 = useRef(true);
+  const runUseEffect3 = useRef(true);
 
   const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  function splitAll(string, split) {
+    string = replaceAll(string, split, "@^");
+    string = string.split("^");
+    const array = [];
+    string.forEach((element) => {
+      if (element.includes("@")) {
+        element = element.split("@")[0];
+        array.push(element);
+      }
+    });
+
+    return array;
+  }
 
   useEffect(() => {
-    console.log(priceList);
-  }, [priceList]);
+    // if (runUseEffect1.current === true) {
+    // runUseEffect1.current = false;
+    let tempArray = [];
+    productData["priceList"].forEach((element, index) => {
+      let tempString = "";
+      const value = element["skuVal"]["availQuantity"];
+      let key = element["skuAttr"];
+      let count = 0;
+      if (key.includes("#")) {
+        setContainHash(true);
+        let keys = replaceAll(key, "#", "@^");
+        let first = true;
+        keys = keys.split("@");
+        let newKeys = [];
+        keys.forEach((element, index) => {
+          if (element.includes("^")) {
+            element = element.split(";")[0].split("^")[1];
+            newKeys.push(element);
+            if (first === true) {
+              first = false;
+              tempString += replaceAll(element, " ", "-");
+            } else {
+              tempString += ":" + replaceAll(element, " ", "-");
+            }
+
+            if (!tempArray.includes(element)) {
+              tempArray.push(element);
+            }
+            setOnClickGetSelectedItems((prevState) => ({
+              ...prevState,
+              total: count,
+              allowedNames: tempArray,
+              focused: false,
+            }));
+            count += 1;
+          }
+        });
+      } else {
+        // for only numbers
+        key = splitAll(key, ";");
+        key.forEach((element, index) => {
+          if (index !== key.length - 1) {
+            tempString += element.split(":")[1] + ":";
+          } else {
+            tempString += element.split(":")[1];
+          }
+
+          if (!tempArray.includes(element)) {
+            tempArray.push(element);
+          }
+
+          setOnClickGetSelectedItems((prevState) => ({
+            ...prevState,
+            total: count,
+            allowedNames: tempArray,
+            focused: false,
+          }));
+          count += 1;
+        });
+      }
+      if (mappingQuality[tempString] === undefined) {
+        mappingQuality[tempString] = value;
+      } else if (mappingQuality[tempString] == 0 && value > 0) {
+        mappingQuality[tempString] = value;
+      } else if (value < mappingQuality[tempString]) {
+        mappingQuality[tempString] = value;
+      }
+    });
+    setMappingQuality_state(mappingQuality);
+    // }
+  }, []);
+
+  useEffect(() => {
+    if (onClickGetSelectedItems) {
+      // //console.log(onClickGetSelectedItems);
+      const length = Object.keys(onClickGetSelectedItems).length - 3 || 0; // removing "total" and "allowedNames" and "focused" from length
+      if (length >= onClickGetSelectedItems["total"] && onClickGetSelectedItems["focused"] === true) {
+        let tempString = "";
+        let first = true;
+        for (let x in onClickGetSelectedItems) {
+          if (x !== "total" && x !== "focused" && x !== "allowedNames") {
+            if (first === true) {
+              first = false;
+              tempString += replaceAll(onClickGetSelectedItems[x], " ", "-");
+            } else {
+              tempString += ":" + replaceAll(onClickGetSelectedItems[x], " ", "-");
+            }
+          }
+        }
+        // //console.log({ tempString, mappingQuality_state });
+        setDefaultQuality(mappingQuality_state[tempString]);
+        const qualityInputValue = quantityInput.current.value * 1;
+        if (qualityInputValue > mappingQuality_state[tempString]) {
+          setQuantity(mappingQuality_state[tempString]);
+        }
+      } else {
+        setDefaultQuality(productData["quantityAvaliable"]);
+      }
+    }
+  }, [onClickGetSelectedItems]);
 
   useEffect(() => {
     if (defaultQuality > 0 && quantity === 0) {
@@ -92,9 +206,10 @@ function ProductLayout({ productData }) {
 
   useEffect(() => {
     const tempArray = [];
-    productData["shipping"].forEach((element, index) => {
+    // productData["shipping"][0]["generalFreightInfo"]["originalLayoutResultList"].forEach((element, index) => {
+    productData["shipping"]["generalFreightInfo"]["originalLayoutResultList"].forEach((element, index) => {
       //console.log(element);
-      tempArray.push(element["shippingFee"]);
+      tempArray.push(element["bizData"]["shippingFee"]);
       if (index === 0) {
         setToggleCheckBtn((prev) => ({ ...prev, [index]: true }));
       } else {
@@ -150,14 +265,15 @@ function ProductLayout({ productData }) {
     }
   }
   useEffect(() => {
-    productData["shipping"].map((element, index) => {
-      const newPrice = element["displayAmount"] || "free";
-      const oldPrice = element["displayAmount"] || "free";
-      const fulldate = new Date(element["deliveryDate"]);
+    // productData["shipping"][0]["generalFreightInfo"]["originalLayoutResultList"].map((element, index) => {
+    productData["shipping"]["generalFreightInfo"]["originalLayoutResultList"].map((element, index) => {
+      const newPrice = element["bizData"]["displayAmount"] || "free";
+      const oldPrice = element["bizData"]["displayAmount"] || "free";
+      const fulldate = new Date(element["bizData"]["deliveryDate"]);
       const month = monthNames[fulldate.getMonth()];
       const date = fulldate.getDate();
-      element["deliveryDate"] = `${month} ${date}`;
-      const bizData = element;
+      element["bizData"]["deliveryDate"] = `${month} ${date}`;
+      const bizData = element["bizData"];
       setShippingData((prev) => ({
         ...prev,
         [index]: {
@@ -312,6 +428,10 @@ function ProductLayout({ productData }) {
   }, [shippingDataSelected, quantity]);
 
   useEffect(() => {
+    // //console.log({ shippingData });
+  }, [shippingData]);
+
+  useEffect(() => {
     if (runUseEffect2.current === true) {
       runUseEffect2.current = false;
       productData["sizesColors"].map((element, index) => {
@@ -323,6 +443,53 @@ function ProductLayout({ productData }) {
       });
     }
   }, []);
+
+  // useEffect(() => {
+  //   const alreadyInCart = cartNumber["ids"].hasOwnProperty(productData["_id"]);
+  //   if (alreadyInCart) {
+  //     const tempCartNumber = cartNumber;
+  //     tempCartNumber["count"] = Object.keys(tempCartNumber["ids"]).length;
+  //     setCartNumber({ ...tempCartNumber });
+  //     setAddToCart(true);
+  //   }
+  // }, []);
+
+  // useEffect(() => {
+  //   if (
+  //     runUseEffect3.current === true &&
+  //     setQuantity &&
+  //     mappingQuality_state &&
+  //     sizeColors_allRefs &&
+  //     addToCart &&
+  //     cartNumber
+  //   ) {
+  //     const alreadyInCart = cartNumber["ids"].hasOwnProperty(productData["_id"]);
+  //     runUseEffect3.current = false;
+  //     if (alreadyInCart === true) {
+  //       try {
+  //         const keys = Object.keys(sizeColors_allRefs);
+  //         keys.map((element, index) => {
+  // //console.log(element);
+  //           sizeColors_allRefs[element][
+  //             cartNumber["ids"][productData["_id"]]["productSelectedDetailsIndex"][element]
+  //           ].current.click();
+  //         });
+  //         setAddToCart(true);
+  //         setQuantity(cartNumber["ids"][productData["_id"]]["quantity"]);
+  //       } catch {
+  // //console.log("Auto select UnSuccessfull");
+  //       }
+  //     }
+  //   }
+  // }, [cartNumber]);
+
+  // useEffect(() => {
+  //   const keys = Object.keys(cartNumber);
+  //   if (keys.length > 0 && cartNumber["ids"].hasOwnProperty(productData["_id"])) {
+  //     const productSelectedDetails_names = cartNumber[productData["_id"]]["productSelectedDetails"];
+  //     const productSelectedDetailsIndex_values = cartNumber[productData["_id"]]["productSelectedDetailsIndex"];
+  //   }
+  // }, [cartNumber]);
 
   function changeShippingPrices() {
     if (shippingData) {
@@ -373,42 +540,11 @@ function ProductLayout({ productData }) {
     console.log(response);
   }
 
-  useEffect(() => {
-    console.log(sizeColorsSelectedData);
-    let test = "";
-    let canRunFully = true;
-    for (let index = 0; index < Object.keys(sizeColorsSelectedData).length; index++) {
-      if (sizeColorsSelectedData[index]["isSelected"] === true) {
-        test += sizeColorsSelectedData[index]["Data"];
-      } else {
-        canRunFully = false;
-        break;
-      }
-    }
-
-    if (canRunFully === false) return setCurrentPrice(productData["maxPrice"]);
-
-    const index = priceList["InNames"].indexOf(test);
-    if (index === -1) return setCurrentPrice(productData["maxPrice"]);
-    setCurrentPrice(priceList["Data"][index]["skuCalPrice"]);
-    console.log(priceList["Data"][index]);
-  }, [sizeColorsSelectedData]);
-
   Array.prototype.remove = function (from, to) {
     var rest = this.slice((to || from) + 1 || this.length);
     this.length = from < 0 ? this.length + from : from;
     return this.push.apply(this, rest);
   };
-
-  function createNewRefs(el, index, propertyName) {
-    if (el == null) return;
-    if (index === 0) {
-      sizeColors_allRefs[propertyName] = [];
-    }
-    sizeColors_allRefs[propertyName].push(el);
-    // console.log({ el, propertyName });
-  }
-
   return (
     <div className={styles.container}>
       {/* left */}
@@ -432,7 +568,7 @@ function ProductLayout({ productData }) {
             </button>
           </Tippy>
         </div>
-        {/* button end */}
+        {/* button end */}element
         <div className={styles.left} onClick={hideImageModal}>
           <div className={styles.mainImageModalDiv}>
             <Image
@@ -473,7 +609,15 @@ function ProductLayout({ productData }) {
                     smallImageModalFunctionality(e);
                   }}
                 >
-                  <Image key={index} id={index} src={element} className={styles.smallImage} width={50} height={50} draggable={false} />
+                  <Image
+                    key={index}
+                    id={index}
+                    src={element}
+                    className={styles.smallImage}
+                    width={50}
+                    height={50}
+                    draggable={false}
+                  />
                 </button>
               );
             })}
@@ -483,7 +627,14 @@ function ProductLayout({ productData }) {
       {/* MODAL END */}
       <div className={styles.left}>
         <button className={styles.mainImageBtn} onClick={showImageModal}>
-          <Image src={mainImage} unoptimized={true} className={styles.image} width={400} height={400} draggable={false} />
+          <Image
+            src={mainImage}
+            unoptimized={true}
+            className={styles.image}
+            width={400}
+            height={400}
+            draggable={false}
+          />
         </button>
         <div className={styles.smallImages}>
           {productData["images"].map((element, index) => {
@@ -511,7 +662,15 @@ function ProductLayout({ productData }) {
                   smallImageFunctionality(e);
                 }}
               >
-                <Image key={index} id={index} src={element} className={styles.smallImage} width={50} height={50} draggable={false} />
+                <Image
+                  key={index}
+                  id={index}
+                  src={element}
+                  className={styles.smallImage}
+                  width={50}
+                  height={50}
+                  draggable={false}
+                />
               </button>
             );
           })}
@@ -528,7 +687,7 @@ function ProductLayout({ productData }) {
 
         {/* Price */}
         <div className={cn(styles.title, styles.price)}>
-          <span className={styles.heading}>Price:</span>US ${currentPrice}
+          <span className={styles.heading}>Price:</span>US ${productData["maxPrice"]}
         </div>
 
         {/* sizesColors */}
@@ -541,69 +700,117 @@ function ProductLayout({ productData }) {
           return (
             <div key={index}>
               <span className={styles.heading}>
-                {propertyName}:
-                <span className={styles.selectedValue}>
-                  {sizeColorsSelectedData.hasOwnProperty(index) ? sizeColorsSelectedData[index]["selected"] : ""}
-                </span>
+                {propertyName}:<span className={styles.selectedValue}>{sizeColorsSelectedData[propertyName]}</span>
               </span>
               <div className={styles.values}>
                 {element["skuPropertyValues"].map((element2, index2) => {
+                  if (index2 === 0) {
+                    sizeColors_allRefs[propertyName] = [];
+                  }
+                  const newRef = createRef();
+                  sizeColors_allRefs[propertyName].push(newRef);
+
                   const containImage = element2.hasOwnProperty("skuPropertyImagePath");
                   return (
                     <div
                       id={index2}
                       className={cn(styles.item, containImage === true ? "" : styles.item_padding)}
                       key={index2}
-                      ref={(ref) => createNewRefs(ref, index2, propertyName)}
-                      data-attribute-first={element["skuPropertyName"]}
-                      data-attribute-second={element2["propertyValueDisplayName"]}
+                      ref={newRef}
+                      data-attribute={element2["propertyValueDisplayName"]}
+                      data-attribute-numbers={element2["propertyValueIdLong"]}
                       onClick={(e) => {
+                        //console.log({ defaultQuality, quantity });
+
                         if (containImage === true) {
                           setProductDataContainImage(true);
                         }
                         const id = e.target.id * 1;
-                        const dataAttributeFirst = e.target.getAttribute("data-attribute-first");
-                        const dataAttributeSecond = e.target.getAttribute("data-attribute-second");
+                        const dataAttribute = e.target.getAttribute("data-attribute");
+                        const dataAttributeNumbers = e.target.getAttribute("data-attribute-numbers");
 
+                        setSizeColorsSelectedData((prevState) => ({
+                          ...prevState,
+                          [propertyName]: dataAttribute,
+                        }));
+                        setProductSelectedDetailsIndex((prevState) => ({
+                          ...prevState,
+                          [propertyName]: index2,
+                        }));
                         setAddToCart(false);
-                        if (sizeColors_allRefs[dataAttributeFirst][id].classList.contains(styles.itemFocus)) {
-                          sizeColors_allRefs[dataAttributeFirst][id].classList.remove(styles.itemFocus);
+                        if (sizeColors_allRefs[propertyName][id].current.classList.contains(styles.itemFocus)) {
+                          sizeColors_allRefs[propertyName][id].current.classList.remove(styles.itemFocus);
+                          const sizeColorsSelectedDataVar = sizeColorsSelectedData;
+                          sizeColorsSelectedDataVar[propertyName] = null;
+                          setSizeColorsSelectedData({ ...sizeColorsSelectedDataVar });
 
-                          setSizeColorsSelectedData((prevState) => ({
-                            ...prevState,
-                            [index]: {
-                              isSelected: false,
-                              selected: "",
-                              Data: `${dataAttributeFirst}:${dataAttributeSecond};`,
-                            },
-                          }));
+                          if (containHash === true) {
+                            if (onClickGetSelectedItems["allowedNames"].includes(dataAttribute)) {
+                              setOnClickGetSelectedItems((prevState) => ({
+                                ...prevState,
+                                [index]: dataAttribute,
+                                focused: false,
+                              }));
+                            }
+                          } else {
+                            if (onClickGetSelectedItems["allowedNames"].includes(dataAttributeNumbers)) {
+                              setOnClickGetSelectedItems((prevState) => ({
+                                ...prevState,
+                                [index]: dataAttributeNumbers,
+                                focused: false,
+                              }));
+                            }
+                          }
+                          if (!isNaN(mappingQuality_state[element2["propertyValueDisplayName"]])) {
+                            setDefaultQuality(productData["quantityAvaliable"]);
+                          }
                         } else {
-                          sizeColors_allRefs[dataAttributeFirst].map((test_e) => {
-                            test_e.classList.remove(styles.itemFocus);
+                          sizeColors_allRefs[propertyName].map((test_e) => {
+                            test_e.current.classList.remove(styles.itemFocus);
                           });
-                          sizeColors_allRefs[dataAttributeFirst][id].classList.add(styles.itemFocus);
-                          setSizeColorsSelectedData((prevState) => ({
-                            ...prevState,
-                            [index]: {
-                              isSelected: true,
-                              selected: dataAttributeSecond,
-                              Data: `${dataAttributeFirst}:${dataAttributeSecond};`,
-                            },
-                          }));
-                        }
+                          sizeColors_allRefs[propertyName][id].current.classList.add(styles.itemFocus);
 
-                        if (containImage) {
-                          setMainImage(element2["skuPropertyImagePath"]);
-                          setProductSelectedImageForCart(element2["skuPropertyImagePath"]);
-                          allImagesRefs.current.map((element3) => {
-                            element3.classList.remove(styles.smallImagesOutline);
-                          });
+                          if (containHash === true) {
+                            if (onClickGetSelectedItems["allowedNames"].includes(dataAttribute)) {
+                              setOnClickGetSelectedItems((prevState) => ({
+                                ...prevState,
+                                [index]: dataAttribute,
+                                focused: true,
+                              }));
+                            }
+                          } else {
+                            if (onClickGetSelectedItems["allowedNames"].includes(dataAttributeNumbers)) {
+                              setOnClickGetSelectedItems((prevState) => ({
+                                ...prevState,
+                                [index]: dataAttributeNumbers,
+                                focused: true,
+                              }));
+                            }
+                          }
+
+                          if (containImage) {
+                            setMainImage(element2["skuPropertyImagePath"]);
+                            setProductSelectedImageForCart(element2["skuPropertyImagePath"]);
+                            allImagesRefs.current.map((element3) => {
+                              element3.classList.remove(styles.smallImagesOutline);
+                            });
+                          }
+
+                          if (!isNaN(mappingQuality_state[element2["propertyValueDisplayName"]])) {
+                            setDefaultQuality(mappingQuality_state[dataAttribute]);
+                          }
                         }
                       }}
                     >
                       {containImage === true ? (
                         <span className={cn(styles.smallImage2)} onClick={(e) => e.preventDefault()}>
-                          <Image src={element2["skuPropertyImagePath"]} width={50} height={50} objectFit="contain" draggable={false} />
+                          <Image
+                            src={element2["skuPropertyImagePath"]}
+                            width={50}
+                            height={50}
+                            objectFit="contain"
+                            draggable={false}
+                          />
                         </span>
                       ) : (
                         element2["propertyValueDisplayName"]
@@ -661,7 +868,9 @@ function ProductLayout({ productData }) {
                     setQuantity(defaultQuality);
                   }
                 }}
-                className={quantity <= 9 ? styles.quantityText0To9 : cn(styles.quantityText0To9, styles.quantityText10To99)}
+                className={
+                  quantity <= 9 ? styles.quantityText0To9 : cn(styles.quantityText0To9, styles.quantityText10To99)
+                }
               />
             </div>
             <button
@@ -691,7 +900,9 @@ function ProductLayout({ productData }) {
                 <span className={(styles.colorName, styles.outOfStock)}>Out of Stock.</span>
               ) : maxPurchaseLimit > 0 ? (
                 `${maxPurchaseLimit} ${
-                  maxPurchaseLimit > 1 ? productData["multiUnitName"] || "pieces" : productData["oddUnitName"] || "piece"
+                  maxPurchaseLimit > 1
+                    ? productData["multiUnitName"] || "pieces"
+                    : productData["oddUnitName"] || "piece"
                 }${productData["buyLimitText"] || " at most per customer"}`
               ) : (
                 `${defaultQuality} ${productData["multiUnitName"]} Avaliable`
@@ -713,7 +924,9 @@ function ProductLayout({ productData }) {
               content={
                 <Tooltip Place="bottom-shippingTo">
                   <span className={styles.tooltip}>Currently we only ship to</span>
-                  <span className={cn(styles.shippingCountryName, styles.shippingCountryNameTooltip)}>United States</span>
+                  <span className={cn(styles.shippingCountryName, styles.shippingCountryNameTooltip)}>
+                    United States
+                  </span>
                 </Tooltip>
               }
             >
@@ -790,7 +1003,9 @@ function ProductLayout({ productData }) {
                       >
                         <div className={styles.shippingFeeTitle}>
                           {shippingData[element]["newPrice"] === "free" ? "Free" : ""} Shipping
-                          {shippingData[element]["newPrice"] !== "free" ? ": $" + round(shippingData[element]["newPrice"], 2) : ""}
+                          {shippingData[element]["newPrice"] !== "free"
+                            ? ": $" + round(shippingData[element]["newPrice"], 2)
+                            : ""}
                         </div>
                         <div className={cn(styles.shippingDetail, styles.shippingDetailLineHeight)}>
                           <div>
@@ -825,7 +1040,11 @@ function ProductLayout({ productData }) {
 
         {/* Add to cart */}
         <div ref={addToCardDiv_ref} className={styles.buyDiv}>
-          <button disabled={quantity == 0 ? true : false} ref={addToCart_BuyNow_ref} className={cn(styles.buyButton, styles.buyNow)}>
+          <button
+            disabled={quantity == 0 ? true : false}
+            ref={addToCart_BuyNow_ref}
+            className={cn(styles.buyButton, styles.buyNow)}
+          >
             Buy Now
           </button>
           <button
@@ -893,7 +1112,7 @@ function ProductLayout({ productData }) {
                     maxPrice_AfterDiscount: productData["maxPrice_AfterDiscount"],
                     shippingDetails: { ...mainshippingFee },
                     productSelectedDetails: { ...sizeColorsSelectedData },
-                    // productSelectedDetailsIndex: { ...productSelectedDetailsIndex },
+                    productSelectedDetailsIndex: { ...productSelectedDetailsIndex },
                     quantity: quantity,
                     selectedImage: productDataContainImage === true ? productSelectedImageForCart : mainImage,
                     totalProductOptions: totalNumberOfProductDetails,
