@@ -377,20 +377,33 @@ function ProductLayout({ productData }) {
     console.log(sizeColorsSelectedData);
     let test = "";
     let canRunFully = true;
-    for (let index = 0; index < Object.keys(sizeColorsSelectedData).length; index++) {
-      if (sizeColorsSelectedData[index]["isSelected"] === true) {
-        test += sizeColorsSelectedData[index]["Data"];
+    for (const key in sizeColorsSelectedData) {
+      if (sizeColorsSelectedData[key]["isSelected"] === true) {
+        test += sizeColorsSelectedData[key]["Data"];
       } else {
         canRunFully = false;
         break;
       }
     }
+    if (canRunFully === false) {
+      setDefaultQuality(productData["quantityAvaliable"]);
+      return setCurrentPrice(productData["maxPrice"]);
+    }
 
-    if (canRunFully === false) return setCurrentPrice(productData["maxPrice"]);
-
-    const index = priceList["InNames"].indexOf(test);
-    if (index === -1) return setCurrentPrice(productData["maxPrice"]);
+    let index = priceList["InNumbers"].indexOf(test);
+    if (index === -1) {
+      index = priceList["InNumbers"].indexOf(test.split(";")[0]);
+      if (index === -1) {
+        setDefaultQuality(productData["quantityAvaliable"]);
+        return setCurrentPrice(productData["maxPrice"]);
+      }
+    }
     setCurrentPrice(priceList["Data"][index]["skuCalPrice"]);
+    setDefaultQuality(priceList["Data"][index]["availQuantity"]);
+    if (quantity > priceList["Data"][index]["availQuantity"]) {
+      setQuantity(priceList["Data"][index]["availQuantity"]);
+    }
+    console.log(quantity);
     console.log(priceList["Data"][index]);
   }, [sizeColorsSelectedData]);
 
@@ -400,12 +413,12 @@ function ProductLayout({ productData }) {
     return this.push.apply(this, rest);
   };
 
-  function createNewRefs(el, index, propertyName) {
+  function createNewRefs(el, index, skuPropertyId) {
     if (el == null) return;
     if (index === 0) {
-      sizeColors_allRefs[propertyName] = [];
+      sizeColors_allRefs[skuPropertyId] = [];
     }
-    sizeColors_allRefs[propertyName].push(el);
+    sizeColors_allRefs[skuPropertyId].push(el);
     // console.log({ el, propertyName });
   }
 
@@ -534,6 +547,7 @@ function ProductLayout({ productData }) {
         {/* sizesColors */}
         {productData["sizesColors"].map((element, index) => {
           const propertyName = element["skuPropertyName"];
+          const propertyId = element["skuPropertyId"];
           if (propertyName === "Ships From") {
             return;
           }
@@ -554,9 +568,10 @@ function ProductLayout({ productData }) {
                       id={index2}
                       className={cn(styles.item, containImage === true ? "" : styles.item_padding)}
                       key={index2}
-                      ref={(ref) => createNewRefs(ref, index2, propertyName)}
-                      data-attribute-first={element["skuPropertyName"]}
-                      data-attribute-second={element2["propertyValueDisplayName"]}
+                      ref={(ref) => createNewRefs(ref, index2, propertyId)}
+                      data-attribute-first={element["skuPropertyId"]}
+                      data-attribute-second={element2["propertyValueId"]}
+                      data-attribute-third={element2["propertyValueDisplayName"]}
                       onClick={(e) => {
                         if (containImage === true) {
                           setProductDataContainImage(true);
@@ -564,6 +579,7 @@ function ProductLayout({ productData }) {
                         const id = e.target.id * 1;
                         const dataAttributeFirst = e.target.getAttribute("data-attribute-first");
                         const dataAttributeSecond = e.target.getAttribute("data-attribute-second");
+                        const dataAttributeThird = e.target.getAttribute("data-attribute-third");
 
                         setAddToCart(false);
                         if (sizeColors_allRefs[dataAttributeFirst][id].classList.contains(styles.itemFocus)) {
@@ -586,7 +602,7 @@ function ProductLayout({ productData }) {
                             ...prevState,
                             [index]: {
                               isSelected: true,
-                              selected: dataAttributeSecond,
+                              selected: dataAttributeThird,
                               Data: `${dataAttributeFirst}:${dataAttributeSecond};`,
                             },
                           }));
