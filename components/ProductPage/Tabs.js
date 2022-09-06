@@ -58,9 +58,17 @@ function Tabs({ Specifications_Array, Description_content }) {
 
       {/* tabs data */}
       <div className={styles.tabsData}>
-        {currentTab === 0 ? <Description Description_content={Description_content} /> : ""}
-        {currentTab === 1 ? <Reviews /> : ""}
-        {currentTab === 2 ? <Specifications Specifications_Array={Specifications_Array} /> : ""}
+        <div className={currentTab === 0 ? styles.show : ""}>
+          <Description Description_content={Description_content} />
+        </div>
+
+        <div className={currentTab === 1 ? styles.show : ""}>
+          <Reviews />
+        </div>
+
+        <div className={currentTab === 2 ? styles.show : ""}>
+          <Specifications Specifications_Array={Specifications_Array} />
+        </div>
       </div>
     </div>
   );

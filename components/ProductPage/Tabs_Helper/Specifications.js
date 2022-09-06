@@ -1,5 +1,6 @@
 import styles from "./Specifications.module.css";
 import { includesInArray } from "../../../libs/includes";
+import { memo } from "react";
 
 function Specifications({ Specifications_Array }) {
   const forbiddenWords = [
@@ -53,4 +54,4 @@ function Specifications({ Specifications_Array }) {
   );
 }
 
-export default Specifications;
+export default memo(Specifications);

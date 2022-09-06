@@ -1,5 +1,5 @@
 import styles from "./Description.module.css";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, memo } from "react";
 import { removeLastOccurrence } from "../../../libs/remove";
 import { replaceAll } from "../../../libs/replace";
 const ReactDOMServer = require("react-dom/server");
@@ -32,4 +32,4 @@ function Description({ Description_content }) {
   );
 }
 
-export default Description;
+export default memo(Description);
