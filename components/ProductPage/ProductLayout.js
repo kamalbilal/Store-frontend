@@ -80,6 +80,9 @@ function ProductLayout({ productData }) {
   }, []);
 
   useEffect(() => {
+    if (quantity === 0) {
+      return;
+    }
     if (quantity > defaultQuality) {
       setQuantity(defaultQuality);
     }
