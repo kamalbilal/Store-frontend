@@ -1,7 +1,7 @@
 import styles from "./ProductLayout.module.css";
 import Image from "next/image";
 import cn from "classnames";
-import { useRef, useState, useEffect, createRef } from "react";
+import { useRef, useState, useEffect, memo } from "react";
 import { IoCloseSharp } from "react-icons/io5";
 import { AiFillMinusCircle, AiFillPlusCircle } from "react-icons/ai";
 import { MdLocationPin } from "react-icons/md";
@@ -10,7 +10,6 @@ import { IoIosArrowDown } from "react-icons/io";
 import { ImRadioUnchecked } from "react-icons/im";
 import Tippy from "@tippyjs/react";
 import Tooltip from "../Desktop/Tooltip/Tooltip";
-import Tabs from "./Tabs";
 import { useContext } from "react";
 import { CartContext, GiftContext, HeartContext } from "../../userContext";
 import { replaceAll } from "../../libs/replace";
@@ -955,4 +954,4 @@ function ProductLayout({ productData }) {
   );
 }
 
-export default ProductLayout;
+export default memo(ProductLayout);
