@@ -19,7 +19,8 @@
   transition-duration: 300ms;
   text-align: left;
 }
-.product:hover, .product:focus {
+.product:hover,
+.product:focus {
   box-shadow: rgba(0, 0, 0, 0.25) 0px 2px 15px;
 }
 .grid .image {
@@ -39,11 +40,12 @@
   box-shadow: rgba(0, 0, 0, 0.25) 0px 2px 15px;
   display: none;
 }
-.product:hover .heartBtn,.product:focus-within .heartBtn   {
+.product:hover .heartBtn,
+.product:focus-within .heartBtn {
   display: flex;
   animation: opacity 500ms;
 }
-.heartBtn:focus  {
+.heartBtn:focus {
   display: flex;
   animation: opacity 500ms;
 }
@@ -105,8 +107,9 @@
   display: none;
 }
 .show {
-  display: flex;
+  display: flex !important;
 }
+
 .showMore button {
   padding: 10px 15px;
   background-color: var(--blue-500);
@@ -151,7 +154,7 @@
 }
 .list .details {
   height: auto !important;
-  margin-top: 10px  !important;
+  margin-top: 10px !important;
 }
 .list .title {
   white-space: wrap !important;

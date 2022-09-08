@@ -3,6 +3,7 @@ import { SearchedPageData_context, SearchPageNumber_context, SearchUrlHistory_co
 import { useContext, useEffect, useState, useRef } from "react";
 import { useRouter } from "next/router";
 import SearchMain from "../components/Search/SearchMain";
+import SearchLeft from "../components/Search/SearchLeft/SearchLeft";
 
 function search({ urlTitle, urlPage, data, count }) {
   const router = useRouter();
@@ -11,18 +12,16 @@ function search({ urlTitle, urlPage, data, count }) {
   const [title, setTitle] = useState(urlTitle);
   const [page, setPage] = useState(urlPage);
   const [titlePage, setTitlePage] = useState(`${title}_${urlPage}`);
-  const [pageCounter, setPageCounter] = useState();
+  const [pageCounter, setPageCounter] = useState({});
   const [displayInGrid, setDisplayInGrid] = useState(true);
 
   const { searchedData, setSearchedData } = useContext(SearchedPageData_context);
   const { pageNumber, setPageNumber } = useContext(SearchPageNumber_context);
   const { searchUrlHistory, setSearchUrlHistory } = useContext(SearchUrlHistory_context);
 
-
   useEffect(() => {
     console.log(totalProductsCount);
-  }, [totalProductsCount])
-  
+  }, [totalProductsCount]);
 
   useEffect(() => {
     const currentPage = isNaN(router.query.page) ? "" : router.query.page * 1;
@@ -49,7 +48,7 @@ function search({ urlTitle, urlPage, data, count }) {
       console.log("setting new data");
       setSearchedData((prev) => ({
         ...prev,
-        [title]: {...searchedData[title] , [titlePage]: { runtime: true, noMoreProducts: false, data } },
+        [title]: { ...searchedData[title], [titlePage]: { runtime: true, noMoreProducts: false, data } },
       }));
       setPageNumber(isNaN(page) ? 1 : 1 * page);
     } else if (!searchedData[title].hasOwnProperty(titlePage)) {
@@ -61,39 +60,43 @@ function search({ urlTitle, urlPage, data, count }) {
     } else {
       console.log("setting previous data");
     }
-  }, [router.asPath]);
+  }, [router.asPath, title]);
 
   useEffect(() => {
-    
     console.log(searchedData);
-  }, [searchedData])
-  
+  }, [searchedData]);
 
   useEffect(() => {
     setPageNumber(isNaN(page) ? 1 : 1 * page);
   }, []);
 
   useEffect(() => {
-    if (titlePage) {
+    if (titlePage && !pageCounter.hasOwnProperty(titlePage)) {
       setPageCounter((prev) => ({ ...prev, [titlePage]: 1 }));
     }
   }, [titlePage]);
 
   function goBack() {
+    console.log("goback Called");
     const current = location.href;
-
+    console.log(searchUrlHistory);
     let currentPage = current.split("page=")[1];
     currentPage = isNaN(currentPage) ? "" : currentPage * 1;
 
+    const title = current.split("title=")[1].split("&")[0];
+    console.log(title);
+    console.log(searchUrlHistory[title]["pages"]);
+    console.log(currentPage);
     const currentPageIndex = searchUrlHistory[title]["pages"].indexOf(String(currentPage));
-    console.log({ index: searchUrlHistory[title]["pages"].indexOf(String(currentPage)) });
+    console.log(searchUrlHistory[title]["pages"].indexOf(String(currentPage)));
     let totalProductsCount = 0;
     let keys = Object.keys(searchedData[title]);
+    console.log(keys);
     for (let index = 0; index <= currentPageIndex; index++) {
       totalProductsCount += searchedData[title][keys[index]]["data"].length;
     }
+    console.log(parseInt(totalProductsCount / totalProductLength));
     setPageNumber(parseInt(totalProductsCount / totalProductLength));
-    
   }
 
   useEffect(() => {
@@ -101,21 +104,20 @@ function search({ urlTitle, urlPage, data, count }) {
     return () => {
       window.removeEventListener("popstate", goBack);
     };
-  }, [pageNumber, searchUrlHistory, router.asPath]);
+  }, [pageNumber, searchUrlHistory, router.asPath, title]);
 
   useEffect(() => {
     console.log("pagenumber: " + pageNumber);
   }, [pageNumber]);
 
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "20% auto" }}>
+    <div style={{ display: "grid", gridTemplateColumns: "20% auto", gap: "10px" }}>
       <div>
-        left
-        <button onClick={() => console.log({ searchedData, pageNumber, titlePage, pageCounter })} style={{ position: "fixed" }}>
-          button
-        </button>
+        <SearchLeft pageNumber={pageNumber} pageCounter={pageCounter} searchedData={searchedData} title={title} />
       </div>
-      {searchedData.hasOwnProperty(title) && searchedData[title].hasOwnProperty(titlePage) ? (
+      {searchedData.hasOwnProperty(title) &&
+      searchedData[title].hasOwnProperty(titlePage) &&
+      searchedData[title][titlePage]["data"].length > 0 ? (
         <SearchMain
           data={{ searchedData, setSearchedData }}
           totalProductsCount={totalProductsCount}
@@ -129,7 +131,7 @@ function search({ urlTitle, urlPage, data, count }) {
           totalProductLength={totalProductLength}
         />
       ) : (
-        "not"
+        "not Found any product"
       )}
     </div>
   );

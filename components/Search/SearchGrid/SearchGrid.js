@@ -1,26 +1,40 @@
 import styles from "./SearchGrid.module.css";
-import { useEffect, useState, useRef, useContext, createRef } from "react";
+import { useEffect, useState, useRef, useContext, createRef, memo } from "react";
 import axios from "axios";
 import Image from "next/image";
 import { FaHeart } from "react-icons/fa";
 import cn from "classnames";
 
-function SearchGrid({ title, page, data, totalProductsCount, titlePage, pageNumberState, pageCounterState, router,displayInGrid ,totalProductLength}) {
+function SearchGrid({
+  title,
+  page,
+  data,
+  totalProductsCount,
+  titlePage,
+  pageNumberState,
+  pageCounterState,
+  router,
+  displayInGrid,
+  totalProductLength,
+}) {
   const { searchedData, setSearchedData } = data;
   const { pageNumber, setPageNumber } = pageNumberState;
   const { pageCounter, setPageCounter } = pageCounterState;
 
-  const [isGettingSearchedProducts, setIsGettingSearchedProducts] = useState(false)
+  const showMoreButtonAfterPages = 3;
+
+  const [isGettingSearchedProducts, setIsGettingSearchedProducts] = useState(false);
 
   const mainDivRef = useRef();
   const showMoreBtnDivRef = useRef();
   const showMoreBtnRef = useRef();
   const noMoreProductsRef = useRef();
   const loaderRef = useRef();
+  const runThisEffectOnce = true; // always use this one, dont remove this
 
   async function getSearchedProducts(pagenumber) {
     if (searchedData[title][titlePage]["runtime"] === false) return;
-    setIsGettingSearchedProducts(true)
+    setIsGettingSearchedProducts(true);
     let options = {
       url: "http://localhost:8000/getsearchedproducts",
       method: "POST",
@@ -41,7 +55,7 @@ function SearchGrid({ title, page, data, totalProductsCount, titlePage, pageNumb
     // setTimeout(async () => {
     showLoader();
     const response = await axios(options).catch((error) => console.log(error));
-    setIsGettingSearchedProducts(false)
+    setIsGettingSearchedProducts(false);
     hideLoader();
     if (!response) return console.log("response error");
     if (response.data.success === true) {
@@ -77,57 +91,40 @@ function SearchGrid({ title, page, data, totalProductsCount, titlePage, pageNumb
     showMoreBtnDivRef.current.classList.remove(styles.show);
   }
   function show_ShowMoreBtn() {
-    hideLoader()
+    hideLoader();
+    hide_noMoreProducts();
     showMoreBtnDivRef.current.classList.add(styles.show);
+    console.log(showMoreBtnDivRef.current.classList);
   }
   function hide_noMoreProducts() {
     noMoreProductsRef.current.classList.remove(styles.show);
   }
   function show_noMoreProducts() {
-    hide_ShowMoreBtn()
-    hideLoader()
+    hide_ShowMoreBtn();
+    hideLoader();
     noMoreProductsRef.current.classList.add(styles.show);
   }
 
-  // useEffect(() => {
-  //   if (searchedData.hasOwnProperty(titlePage) && searchedData[titlePage].length > 0) {
-  //     const allProducts = document.querySelectorAll(".allSearchedProducts");
-  //     const observer = new IntersectionObserver(
-  //       (entries) => {
-  //         entries.forEach((entry) => {
-  //           if (entry.isIntersecting) {
-  //             entry.target.classList.add("show");
-  //           } else {
-  //             entry.target.classList.remove("show");
-  //           }
-  //         });
-  //       },
-  //       {
-  //         rootMargin: "200px",
-  //       }
-  //     );
-
-  //     allProducts.forEach((element) => {
-  //       observer.observe(element);
-  //     });
-
-  //     return () => {
-  //       observer.disconnect();
-  //     };
-  //   }
-  // }, [searchedData[titlePage]]);
-
   useEffect(() => {
     let observer;
+    const current = location.href;
+    let currentPage = current.split("page=")[1];
+    currentPage = isNaN(currentPage) ? "" : currentPage * 1;
+
+    const title = current.split("title=")[1].split("&")[0];
+    const titlePage = `${title}_${currentPage}`;
+
     if (searchedData.hasOwnProperty(title) && searchedData[title].hasOwnProperty(titlePage)) {
       if (searchedData[title][titlePage]["runtime"] === false && isGettingSearchedProducts === false) {
         hideLoader();
-        show_ShowMoreBtn()
-      }
-
-      else if (searchedData[title][titlePage]["runtime"] === true && searchedData[title][titlePage]["noMoreProducts"] === false && searchedData[title][titlePage]["data"].length > 0) {
+        show_ShowMoreBtn();
+      } else if (
+        searchedData[title][titlePage]["runtime"] === true &&
+        searchedData[title][titlePage]["noMoreProducts"] === false &&
+        searchedData[title][titlePage]["data"].length > 0
+      ) {
         const lastProduct = document.querySelector(".allSearchedProducts:last-of-type");
-        if (pageCounter[titlePage] <= 3 && isGettingSearchedProducts === false) {
+        if (pageCounter[titlePage] <= showMoreButtonAfterPages && isGettingSearchedProducts === false) {
           observer = new IntersectionObserver(
             (entries) => {
               entries.forEach((entry) => {
@@ -135,13 +132,13 @@ function SearchGrid({ title, page, data, totalProductsCount, titlePage, pageNumb
                   observer.unobserve(entry.target);
                   observer.disconnect();
                   console.log(pageCounter[titlePage]);
-                  // if (pageCounter[titlePage] <= 2 && isGettingSearchedProducts === false) { 
-                    hide_ShowMoreBtn()
+                  if (pageCounter[titlePage] <= showMoreButtonAfterPages && isGettingSearchedProducts === false) {
+                    console.log("pageCounter");
+                    hide_ShowMoreBtn();
                     getSearchedProducts(pageNumber + 1);
                     setPageNumber((prev) => prev + 1);
                     setPageCounter((prev) => ({ ...prev, [titlePage]: pageCounter[titlePage] + 1 }));
-                  // }
-                  
+                  }
                 }
               });
             },
@@ -150,13 +147,17 @@ function SearchGrid({ title, page, data, totalProductsCount, titlePage, pageNumb
             }
           );
           observer.observe(lastProduct);
-        } 
-        else if (pageCounter[titlePage] > 3 && searchedData[title][titlePage]["noMoreProducts"] === false && isGettingSearchedProducts === false) {
-          show_ShowMoreBtn()
+        } else if (
+          //
+          pageCounter[titlePage] > showMoreButtonAfterPages &&
+          searchedData[title][titlePage]["noMoreProducts"] === false &&
+          isGettingSearchedProducts === false
+        ) {
+          console.log("showing more button");
+          show_ShowMoreBtn();
         }
-
-      } else if(searchedData[title][titlePage]["noMoreProducts"] === true) {
-        show_noMoreProducts()
+      } else if (searchedData[title][titlePage]["noMoreProducts"] === true) {
+        show_noMoreProducts();
       }
     }
     return () => {
@@ -164,39 +165,41 @@ function SearchGrid({ title, page, data, totalProductsCount, titlePage, pageNumb
         observer.disconnect();
       }
     };
-  }, [searchedData[title][titlePage], pageCounter[titlePage], title]);
+  }, [searchedData[title][titlePage], pageCounter[titlePage], pageNumber]);
 
   useEffect(() => {
-    console.log({totalProductsCount, pageNumber, total: (pageNumber * totalProductLength)});
-  if ((pageNumber * totalProductLength) >= totalProductsCount && isGettingSearchedProducts === false) {
-    console.log("no more data");
-    setSearchedData((prev) => ({
-      ...prev,
-      [title]: {
-        ...searchedData[title],
-        [titlePage]: {
-          ...searchedData[title][titlePage],
-          noMoreProducts: true,
+    console.log({ totalProductsCount, pageNumber, total: pageNumber * totalProductLength });
+    if (pageNumber * totalProductLength >= totalProductsCount && isGettingSearchedProducts === false) {
+      console.log("no more data");
+      setSearchedData((prev) => ({
+        ...prev,
+        [title]: {
+          ...searchedData[title],
+          [titlePage]: {
+            ...searchedData[title][titlePage],
+            noMoreProducts: true,
+          },
         },
-      },
-    }));
-  }
-  }, [pageNumber])
+      }));
+    }
+  }, [pageNumber]);
 
   useEffect(() => {
     if (searchedData[title][titlePage]["noMoreProducts"] === true) {
-      show_noMoreProducts()
+      show_noMoreProducts();
     } else {
-      hide_noMoreProducts()
+      hide_noMoreProducts();
     }
-  }, [searchedData[title][titlePage]["noMoreProducts"]])
-  
+  }, [searchedData[title][titlePage]["noMoreProducts"]]);
 
   useEffect(() => {
-    hide_noMoreProducts()
-    hide_ShowMoreBtn()
-    hideLoader()
-  }, [])  
+    if (runThisEffectOnce.current === true) {
+      runThisEffectOnce.current = false;
+      hide_noMoreProducts();
+      hide_ShowMoreBtn();
+      hideLoader();
+    }
+  }, []);
 
   function showMore() {
     // setPageCounter(1);
@@ -213,10 +216,10 @@ function SearchGrid({ title, page, data, totalProductsCount, titlePage, pageNumb
     setPageNumber((prev) => prev + 1);
     router.push(`/search?title=${title}&page=${pageNumber + 1}`);
   }
-  // 
+  //
 
   return (
-    <div ref={mainDivRef} className={displayInGrid === true ? styles.grid: styles.list}>
+    <div ref={mainDivRef} className={displayInGrid === true ? styles.grid : styles.list}>
       <div className={styles.productData}>
         {searchedData.hasOwnProperty(title) && searchedData[title].hasOwnProperty(titlePage)
           ? searchedData[title][titlePage]["data"].map((element, index) => {
@@ -257,22 +260,20 @@ function SearchGrid({ title, page, data, totalProductsCount, titlePage, pageNumb
           : ""}
       </div>
 
-      
       <div ref={showMoreBtnDivRef} className={styles.showMore}>
-        <button ref={showMoreBtnRef} onClick={showMore}>Show More</button>
+        <button ref={showMoreBtnRef} onClick={showMore}>
+          Show More
+        </button>
       </div>
       <div ref={loaderRef} className={styles.loader}>
         <div className="lds-dual-ring"></div>
       </div>
 
-       <div ref={noMoreProductsRef} className={styles.showMore}>
-       <button disabled={true}>No More Products</button>
-     </div>
-      
-      
-     
+      <div ref={noMoreProductsRef} className={styles.showMore}>
+        <button disabled={true}>No More Products</button>
+      </div>
     </div>
   );
 }
 
-export default SearchGrid;
+export default memo(SearchGrid);

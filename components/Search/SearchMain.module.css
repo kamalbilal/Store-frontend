@@ -21,7 +21,6 @@
 }
 .view:hover {
   outline: 4px solid var(--blue-500);
-
 }
 .view p {
   font-size: 1.5rem;
@@ -41,4 +40,13 @@
   font-size: 1.7rem !important;
   cursor: pointer;
   transform: translateY(2.5px);
+}
+.foundTitle {
+  font-size: 1.6rem;
+  /* font-weight: bold; */
+  margin-left: 10px;
+}
+.foundTitle span {
+  font-weight: bold;
+  color: red;
 }
