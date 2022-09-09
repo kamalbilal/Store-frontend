@@ -3,7 +3,7 @@ import styles from "./SearchMain.module.css";
 import { HiOutlineViewGrid } from "react-icons/hi";
 import { ImList2 } from "react-icons/im";
 import cn from "classnames";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 function SearchMain({
   data,
@@ -18,6 +18,9 @@ function SearchMain({
   totalProductLength,
 }) {
   const { displayInGrid, setDisplayInGrid } = displayIn;
+
+  const sortByMatchBtn = useRef();
+  const sortByPriceBtn = useRef();
 
   useEffect(() => {
     function handler(e) {
@@ -34,19 +37,39 @@ function SearchMain({
     };
   }, []);
 
+  function sortByMatch() {
+    sortByPriceBtn.current.classList.remove(styles.sortBySelectedPrice);
+    sortByMatchBtn.current.classList.add(styles.sortBySelectedMatch);
+  }
+  function sortByPrice() {
+    sortByMatchBtn.current.classList.remove(styles.sortBySelectedMatch);
+    sortByPriceBtn.current.classList.add(styles.sortBySelectedPrice);
+  }
+
   return (
     <div>
       <div className={styles.viewDiv}>
         <div className={styles.foundTitle}>
           Found <span>"{totalProductsCount}"</span> products
         </div>
-        <div className={styles.view}>
-          <p>View:</p>
-          <div onClick={() => setDisplayInGrid(true)} className={cn(styles.grid, displayInGrid === true ? styles.blueColor : "")}>
-            <HiOutlineViewGrid />
+        <div className={styles.right}>
+          <div className={styles.sortBy}>
+            <p>Sort By:</p>
+            <button onClick={sortByMatch} ref={sortByMatchBtn} className={styles.sortBySelectedMatch}>
+              Best Match
+            </button>
+            <button onClick={sortByPrice} ref={sortByPriceBtn}>
+              Price
+            </button>
           </div>
-          <div onClick={() => setDisplayInGrid(false)} className={cn(styles.list, displayInGrid === false ? styles.blueColor : "")}>
-            <ImList2 />
+          <div className={styles.view}>
+            <p>View:</p>
+            <div onClick={() => setDisplayInGrid(true)} className={cn(styles.grid, displayInGrid === true ? styles.blueColor : "")}>
+              <HiOutlineViewGrid />
+            </div>
+            <div onClick={() => setDisplayInGrid(false)} className={cn(styles.list, displayInGrid === false ? styles.blueColor : "")}>
+              <ImList2 />
+            </div>
           </div>
         </div>
       </div>
