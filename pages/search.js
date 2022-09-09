@@ -1,138 +1,89 @@
 // import Search from "../components/Search/Search";
 import { SearchedPageData_context, SearchPageNumber_context, SearchUrlHistory_context } from "../userContext";
-import { useContext, useEffect, useState, useRef } from "react";
+import { useContext, useEffect, useState, useRef, memo } from "react";
 import { useRouter } from "next/router";
 import SearchMain from "../components/Search/SearchMain";
 import SearchLeft from "../components/Search/SearchLeft/SearchLeft";
 
-function search({ urlTitle, urlPage, data, count }) {
+function search({ urlTitle, urlPage, data, count, sort }) {
   const router = useRouter();
-  const totalProductLength = 10;
-  const [totalProductsCount, setTotalProductsCount] = useState(count);
+
   const [title, setTitle] = useState(urlTitle);
   const [page, setPage] = useState(urlPage);
-  const [titlePage, setTitlePage] = useState(`${title}_${urlPage}`);
-  const [pageCounter, setPageCounter] = useState({});
-  const [displayInGrid, setDisplayInGrid] = useState(true);
+  const [sortby, setSortby] = useState(sort);
+  const [titlePageSort, setTitlePageSort] = useState(`${urlTitle}-${urlPage}-${sort}`);
+  const [titleSort, setTitleSort] = useState(`${urlTitle}-${sort}`);
 
   const { searchedData, setSearchedData } = useContext(SearchedPageData_context);
-  const { pageNumber, setPageNumber } = useContext(SearchPageNumber_context);
+  // const { pageNumber, setPageNumber } = useContext(SearchPageNumber_context);
   const { searchUrlHistory, setSearchUrlHistory } = useContext(SearchUrlHistory_context);
 
-  useEffect(() => {
-    console.log(totalProductsCount);
-  }, [totalProductsCount]);
-
-  useEffect(() => {
-    const currentPage = isNaN(router.query.page) ? "" : router.query.page * 1;
-    const titlePage = `${title}_${currentPage}`;
-    console.log(titlePage);
-    setTitlePage(titlePage);
-    setTitle(router.query.title);
-    setPage(router.query.page);
-
-    const urlPath = router.asPath;
-    if (!searchUrlHistory.hasOwnProperty(title)) {
-      setSearchUrlHistory((prev) => ({
-        ...prev,
-        [title]: { pages: [router.query.page] },
-      }));
-    } else if (!searchUrlHistory[title]["pages"].includes(router.query.page)) {
-      setSearchUrlHistory((prev) => ({
-        ...prev,
-        [title]: { pages: [...searchUrlHistory[title]["pages"], router.query.page] },
-      }));
+  function returnParams(url) {
+    const tempObject = {};
+    url = url.split("?")[1];
+    if (url.includes("&")) {
+      url = url.split("&");
     }
-
-    if (!searchedData.hasOwnProperty(title)) {
-      console.log("setting new data");
-      setSearchedData((prev) => ({
-        ...prev,
-        [title]: { ...searchedData[title], [titlePage]: { runtime: true, noMoreProducts: false, data } },
-      }));
-      setPageNumber(isNaN(page) ? 1 : 1 * page);
-    } else if (!searchedData[title].hasOwnProperty(titlePage)) {
-      setSearchedData((prev) => ({
-        ...prev,
-        [title]: { ...searchedData[title], [titlePage]: { runtime: true, noMoreProducts: false, data } },
-      }));
-      // setPageNumber(isNaN(page) ? 1 : 1 * urlPage);
-    } else {
-      console.log("setting previous data");
-    }
-  }, [router.asPath, title]);
-
-  useEffect(() => {
-    console.log(searchedData);
-  }, [searchedData]);
-
-  useEffect(() => {
-    setPageNumber(isNaN(page) ? 1 : 1 * page);
-  }, []);
-
-  useEffect(() => {
-    if (titlePage && !pageCounter.hasOwnProperty(titlePage)) {
-      setPageCounter((prev) => ({ ...prev, [titlePage]: 1 }));
-    }
-  }, [titlePage]);
-
-  function goBack() {
-    console.log("goback Called");
-    const current = location.href;
-    console.log(searchUrlHistory);
-    let currentPage = current.split("page=")[1];
-    currentPage = isNaN(currentPage) ? "" : currentPage * 1;
-
-    const title = current.split("title=")[1].split("&")[0];
-    console.log(title);
-    console.log(searchUrlHistory[title]["pages"]);
-    console.log(currentPage);
-    const currentPageIndex = searchUrlHistory[title]["pages"].indexOf(String(currentPage));
-    console.log(searchUrlHistory[title]["pages"].indexOf(String(currentPage)));
-    let totalProductsCount = 0;
-    let keys = Object.keys(searchedData[title]);
-    console.log(keys);
-    for (let index = 0; index <= currentPageIndex; index++) {
-      totalProductsCount += searchedData[title][keys[index]]["data"].length;
-    }
-    console.log(parseInt(totalProductsCount / totalProductLength));
-    setPageNumber(parseInt(totalProductsCount / totalProductLength));
+    url.forEach((element) => {
+      const key = element.split("=")[0];
+      const value = element.split("=")[1];
+      tempObject[key] = value;
+    });
+    return tempObject;
   }
 
   useEffect(() => {
-    window.addEventListener("popstate", goBack);
-    return () => {
-      window.removeEventListener("popstate", goBack);
+    const handleRouteChange = (url) => {
+      const params = returnParams(url);
+      setTitle(params.title);
+      setPage(params.page);
+      setSortby(params.sortby);
+      setTitlePageSort(`${params.title}-${params.page}-${params.sortby}`);
+      setTitleSort(`${params.title}-${params.sortby}`);
     };
-  }, [pageNumber, searchUrlHistory, router.asPath, title]);
+
+    router.events.on("routeChangeStart", handleRouteChange);
+
+    return () => {
+      router.events.off("routeChangeStart", handleRouteChange);
+    };
+  }, []);
 
   useEffect(() => {
-    console.log("pagenumber: " + pageNumber);
-  }, [pageNumber]);
+    console.count("one");
+    setSearchUrlHistory((prev) => {
+      if (prev.hasOwnProperty(titleSort)) {
+        const exist = prev[titleSort].indexOf(page);
+        if (exist > -1) {
+          prev[titleSort].splice(exist, exist);
+        }
+        return { ...prev, [titleSort]: [page, ...prev[titleSort]] };
+      } else {
+        return { ...prev, [titleSort]: [page] };
+      }
+    });
+  }, [titleSort, page]);
+
+  useEffect(() => {
+    if (Object.keys(searchUrlHistory).length === 0) return;
+    console.count("two");
+    console.log(searchUrlHistory);
+    setSearchedData((prev) => {
+      if (prev.hasOwnProperty(titlePageSort)) {
+        return { ...prev, [titlePageSort]: [...prev[titlePageSort], ...data] };
+      } else {
+        return { ...prev, [titlePageSort]: [...data] };
+      }
+    });
+  }, [searchUrlHistory]);
 
   return (
     <div style={{ display: "grid", gridTemplateColumns: "20% auto", gap: "10px" }}>
-      <div>
-        <SearchLeft pageNumber={pageNumber} pageCounter={pageCounter} searchedData={searchedData} title={title} />
-      </div>
-      {searchedData.hasOwnProperty(title) &&
-      searchedData[title].hasOwnProperty(titlePage) &&
-      searchedData[title][titlePage]["data"].length > 0 ? (
-        <SearchMain
-          data={{ searchedData, setSearchedData }}
-          totalProductsCount={totalProductsCount}
-          title={title}
-          titlePage={titlePage}
-          page={page}
-          pageNumberState={{ pageNumber, setPageNumber }}
-          pageCounterState={{ pageCounter, setPageCounter }}
-          router={router}
-          displayIn={{ displayInGrid, setDisplayInGrid }}
-          totalProductLength={totalProductLength}
-        />
-      ) : (
-        "not Found any product"
-      )}
+      <div>{/* <SearchLeft pageNumber={pageNumber} pageCounter={pageCounter} searchedData={searchedData} title={title} /> */}</div>
+
+      <SearchMain
+      //  data={{ searchedData, setSearchedData }}
+      />
     </div>
   );
 }
@@ -140,6 +91,7 @@ function search({ urlTitle, urlPage, data, count }) {
 export async function getServerSideProps({ query }) {
   const { title } = query;
   let { page } = query;
+  let { sortby } = query;
 
   if (!title) {
     return {
@@ -148,6 +100,9 @@ export async function getServerSideProps({ query }) {
   }
   if (!page) {
     page = 1;
+  }
+  if (!sortby) {
+    sortby = "bestMatch";
   }
   let response = await fetch(`http://localhost:8000/getsearchedproducts`, {
     method: "POST",
@@ -163,8 +118,8 @@ export async function getServerSideProps({ query }) {
   const count = response.count;
 
   return {
-    props: { urlTitle: title, urlPage: page, data, count },
+    props: { urlTitle: title, urlPage: page, data, count, sort: sortby },
   };
 }
 
-export default search;
+export default memo(search);

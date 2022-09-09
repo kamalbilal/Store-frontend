@@ -5,8 +5,22 @@ import Image from "next/image";
 import { FaHeart } from "react-icons/fa";
 import cn from "classnames";
 
-function SearchGrid({ data }) {
+function SearchGrid({
+  title,
+  page,
+  data,
+  totalProductsCount,
+  titlePageSort,
+  pageNumberState,
+  pageCounterState,
+  router,
+  displayInGrid,
+  totalProductLength,
+  sortby,
+}) {
   const { searchedData, setSearchedData } = data;
+  const { pageNumber, setPageNumber } = pageNumberState;
+  const { pageCounter, setPageCounter } = pageCounterState;
 
   const showMoreButtonAfterPages = 3;
 
@@ -91,6 +105,121 @@ function SearchGrid({ data }) {
     hideLoader();
     noMoreProductsRef.current.classList.add(styles.show);
   }
+
+  useEffect(() => {
+    let observer;
+    const current = location.href;
+    let currentPage = current.split("page=")[1].split("&")[0];
+    currentPage = isNaN(currentPage) ? "" : currentPage * 1;
+
+    const title = current.split("title=")[1].split("&")[0];
+    const sort = current.split("sortby=")[1];
+    const titlePageSort = `${title}_${currentPage}_${sort}`;
+
+    if (searchedData.hasOwnProperty(title) && searchedData[title].hasOwnProperty(titlePageSort)) {
+      if (searchedData[title][titlePageSort]["runtime"] === false && isGettingSearchedProducts === false) {
+        hideLoader();
+        show_ShowMoreBtn();
+      } else if (
+        searchedData[title][titlePageSort]["runtime"] === true &&
+        searchedData[title][titlePageSort]["noMoreProducts"] === false &&
+        searchedData[title][titlePageSort]["data"].length > 0
+      ) {
+        const lastProduct = document.querySelector(".allSearchedProducts:last-of-type");
+        if (pageCounter[titlePageSort] <= showMoreButtonAfterPages && isGettingSearchedProducts === false) {
+          observer = new IntersectionObserver(
+            (entries) => {
+              entries.forEach((entry) => {
+                if (entry.isIntersecting) {
+                  observer.unobserve(entry.target);
+                  observer.disconnect();
+                  console.log(pageCounter[titlePageSort]);
+                  if (pageCounter[titlePageSort] <= showMoreButtonAfterPages && isGettingSearchedProducts === false) {
+                    console.log("pageCounter");
+                    hide_ShowMoreBtn();
+                    getSearchedProducts(pageNumber + 1);
+                    setPageNumber((prev) => prev + 1);
+                    setPageCounter((prev) => ({ ...prev, [titlePageSort]: pageCounter[titlePageSort] + 1 }));
+                  }
+                }
+              });
+            },
+            {
+              // rootMargin: "500px",
+            }
+          );
+          observer.observe(lastProduct);
+        } else if (
+          //
+          pageCounter[titlePageSort] > showMoreButtonAfterPages &&
+          searchedData[title][titlePageSort]["noMoreProducts"] === false &&
+          isGettingSearchedProducts === false
+        ) {
+          console.log("showing more button");
+          show_ShowMoreBtn();
+        }
+      } else if (searchedData[title][titlePageSort]["noMoreProducts"] === true) {
+        show_noMoreProducts();
+      }
+    }
+    return () => {
+      if (observer) {
+        observer.disconnect();
+      }
+    };
+  }, [searchedData[title][titlePageSort]]);
+  // }, [searchedData[title][titlePageSort], pageCounter[titlePageSort]]);
+
+  useEffect(() => {
+    console.log({ totalProductsCount, pageNumber, total: pageNumber * totalProductLength });
+    if (pageNumber * totalProductLength >= totalProductsCount && isGettingSearchedProducts === false) {
+      console.log("no more data");
+      setSearchedData((prev) => ({
+        ...prev,
+        [title]: {
+          ...searchedData[title],
+          [titlePageSort]: {
+            ...searchedData[title][titlePageSort],
+            noMoreProducts: true,
+          },
+        },
+      }));
+    }
+  }, [pageNumber]);
+
+  useEffect(() => {
+    if (searchedData[title][titlePageSort]["noMoreProducts"] === true) {
+      show_noMoreProducts();
+    } else {
+      hide_noMoreProducts();
+    }
+  }, [searchedData[title][titlePageSort]["noMoreProducts"]]);
+
+  useEffect(() => {
+    if (runThisEffectOnce.current === true) {
+      runThisEffectOnce.current = false;
+      hide_noMoreProducts();
+      hide_ShowMoreBtn();
+      hideLoader();
+    }
+  }, []);
+
+  function showMore() {
+    // setPageCounter(1);
+    setSearchedData((prev) => ({
+      ...prev,
+      [title]: {
+        ...searchedData[title],
+        [titlePageSort]: {
+          ...searchedData[title][titlePageSort],
+          runtime: false,
+        },
+      },
+    }));
+    setPageNumber((prev) => prev + 1);
+    router.push(`/search?title=${title}&page=${pageNumber + 1}&sortby=${sortby}`);
+  }
+  //
 
   return (
     <div ref={mainDivRef} className={displayInGrid === true ? styles.grid : styles.list}>
