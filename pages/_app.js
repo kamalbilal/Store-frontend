@@ -35,7 +35,7 @@ function MyApp({ Component, pageProps }) {
   const [insertDefaultInputValues, setInsertDefaultInputValues] = useState(null); // dafault value
   const [totalCount, setTotalCount] = useState(null); // dafault value
   const [searchedData, setSearchedData] = useState({}); // dafault value
-  const [pageNumber, setPageNumber] = useState(null); // dafault value
+  const [pageNumber, setPageNumber] = useState(1); // dafault value
   const [searchUrlHistory, setSearchUrlHistory] = useState({}); // dafault value
 
   const router = useRouter();
@@ -65,12 +65,8 @@ function MyApp({ Component, pageProps }) {
       return (
         <InsertOfferDataCount_context.Provider value={{ totalCount, setTotalCount }}>
           <InsertOfferData_context.Provider value={{ insertOfferData, setInsertOfferData }}>
-            <InsertDefaultInputValues_context.Provider
-              value={{ insertDefaultInputValues, setInsertDefaultInputValues }}
-            >
-              <ModifyDefaultInputValues_context.Provider
-                value={{ modifyDefaultInputValues, setModifyDefaultInputValues }}
-              >
+            <InsertDefaultInputValues_context.Provider value={{ insertDefaultInputValues, setInsertDefaultInputValues }}>
+              <ModifyDefaultInputValues_context.Provider value={{ modifyDefaultInputValues, setModifyDefaultInputValues }}>
                 <ModifyOfferData_context.Provider value={{ modifyOfferData, setModifyOfferData }}>
                   <AdminPageData_context.Provider value={{ adminPageData, setAdminPageData }}>
                     <Component {...pageProps} />

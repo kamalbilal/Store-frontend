@@ -65,9 +65,9 @@ function search({ urlTitle, urlPage, data, count, sort }) {
   }, [titleSort, page]);
 
   useEffect(() => {
+    console.log(searchUrlHistory);
     if (Object.keys(searchUrlHistory).length === 0) return;
     console.count("two");
-    console.log(searchUrlHistory);
     setSearchedData((prev) => {
       if (prev.hasOwnProperty(titlePageSort)) {
         return { ...prev, [titlePageSort]: [...prev[titlePageSort], ...data] };
@@ -76,6 +76,10 @@ function search({ urlTitle, urlPage, data, count, sort }) {
       }
     });
   }, [searchUrlHistory]);
+
+  useEffect(() => {
+    console.log(searchedData);
+  }, [searchedData]);
 
   return (
     <div style={{ display: "grid", gridTemplateColumns: "20% auto", gap: "10px" }}>

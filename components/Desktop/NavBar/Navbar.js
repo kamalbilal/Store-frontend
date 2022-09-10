@@ -75,7 +75,7 @@ function Navbar() {
   }, []);
 
   function searchClick() {
-    const href = `/search?title=${searcInputRef.current.value}&page=1&sortby=bestMatch`;
+    const href = `/search/${searcInputRef.current.value}/1/bestMatch`;
     router.push(href);
   }
 
