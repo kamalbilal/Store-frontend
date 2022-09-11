@@ -1,5 +1,5 @@
 // import Search from "../components/Search/Search";
-import { SearchedPageData_context, SearchPageNumber_context, SearchUrlHistory_context } from "../../../../userContext";
+import { SearchedPageData_context, SearchPageNumber_context, SearchPageNumberHistory_context } from "../../../../userContext";
 import { useContext, useEffect, useState, useRef, memo } from "react";
 import { useRouter } from "next/router";
 import SearchMain from "../../../../components/Search/SearchMain";
@@ -20,7 +20,7 @@ function Search({ urlTitle, urlPage, data, count, sort, countOnEveryRequest, sho
 
   const { searchedData, setSearchedData } = useContext(SearchedPageData_context);
   const { pageNumber, setPageNumber } = useContext(SearchPageNumber_context);
-  //   const { searchUrlHistory, setSearchUrlHistory } = useContext(SearchUrlHistory_context);
+  const { searchPageNumberHistory, setSearchPageNumberHistory } = useContext(SearchPageNumberHistory_context);
 
   function returnParams(url) {
     const title = url.split("/")[2];
@@ -64,39 +64,41 @@ function Search({ urlTitle, urlPage, data, count, sort, countOnEveryRequest, sho
     return () => {
       router.events.off("routeChangeStart", handleRouteChange);
     };
-  }, [router.asPath]);
+  }, [router.asPath, searchPageNumberHistory]);
 
   function goBack(currentPage, title, sort) {
-    // console.log(currentPage);
     let count = 0;
     for (let index = 1; index <= currentPage * 1; index++) {
       if (searchedData.hasOwnProperty(`${title}-${index}-${sort}`)) {
         count += searchedData[`${title}-${index}-${sort}`].length;
+      } else {
+        if (!searchPageNumberHistory[titleSort].includes(index)) {
+          count += countOnEveryRequest;
+        }
       }
     }
 
     if (count !== 0) {
-      console.log(searchedData);
-      console.log({ count, pageNumber: count / countOnEveryRequest });
       setPageNumber(count / countOnEveryRequest);
     } else {
       setPageNumber(currentPage * 1);
     }
   }
 
-  //   useEffect(() => {
-  //     setSearchUrlHistory((prev) => {
-  //       if (prev.hasOwnProperty(titleSort)) {
-  //         const exist = prev[titleSort].indexOf(page);
-  //         if (exist > -1) {
-  //           prev[titleSort].splice(exist, exist);
-  //         }
-  //         return { ...prev, [titleSort]: [page, ...prev[titleSort]] };
-  //       } else {
-  //         return { ...prev, [titleSort]: [page] };
-  //       }
-  //     });
-  //   }, [titleSort, page]);
+  useEffect(() => {
+    if (pageNumber === 0) return;
+    setSearchPageNumberHistory((prev) => {
+      if (prev.hasOwnProperty(titleSort)) {
+        const exist = prev[titleSort].indexOf(pageNumber);
+        if (exist > -1) {
+          prev[titleSort].splice(exist, exist);
+        }
+        return { ...prev, [titleSort]: [...prev[titleSort], pageNumber] };
+      } else {
+        return { ...prev, [titleSort]: [pageNumber] };
+      }
+    });
+  }, [titleSort, pageNumber]);
 
   useEffect(() => {
     if (!searchedData) return;
@@ -104,10 +106,6 @@ function Search({ urlTitle, urlPage, data, count, sort, countOnEveryRequest, sho
       setSearchedData((prev) => ({ ...prev, [titlePageSort]: data }));
     }
   }, [data]);
-
-  useEffect(() => {
-    console.log(searchedData);
-  }, [searchedData]);
 
   return (
     <div style={{ display: "grid", gridTemplateColumns: "20% auto", gap: "10px" }}>
@@ -124,7 +122,9 @@ function Search({ urlTitle, urlPage, data, count, sort, countOnEveryRequest, sho
           showNextPageAfter={showNextPageAfter}
         />
       ) : (
-        "Loading..."
+        <div style={{ width: "100%", height: "100vh", display: "flex", justifyContent: "center", alignItems: "center" }}>
+          <div className="lds-dual-ring"></div>
+        </div>
       )}
     </div>
   );
@@ -146,7 +146,6 @@ export async function getServerSideProps({ query }) {
   if (!sortby) {
     sortby = "bestMatch";
   }
-  console.log(page);
   let response = await fetch(`http://localhost:8000/getsearchedproducts`, {
     method: "POST",
     headers: {
@@ -156,9 +155,13 @@ export async function getServerSideProps({ query }) {
     body: JSON.stringify({ pageNumber: page, title, isServer: true }),
   });
   response = await response.json();
-  console.log(response.products[0]._id);
 
   const data = response.products;
+  if (data.length === 0) {
+    return {
+      notFound: true,
+    };
+  }
   const count = response.count;
   const countOnEveryRequest = response.countOnEveryRequest;
   const showNextPageAfter = response.showNextPageAfter;

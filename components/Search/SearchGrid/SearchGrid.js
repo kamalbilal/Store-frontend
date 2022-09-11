@@ -78,6 +78,7 @@ function SearchGrid({ data, displayInGrid, titlePageSort, page, title, showNextP
   }
 
   function onClick_showMore() {
+    window.scrollTo(0, 0);
     router.push(`/search/glasses/${pageNumber + 1}/bestMatch`);
   }
 

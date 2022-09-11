@@ -12,4 +12,4 @@ export const ModifyDefaultInputValues_context = createContext(null);
 export const InsertDefaultInputValues_context = createContext(null);
 export const SearchedPageData_context = createContext(null);
 export const SearchPageNumber_context = createContext(null);
-export const SearchUrlHistory_context = createContext(null);
+export const SearchPageNumberHistory_context = createContext(null);

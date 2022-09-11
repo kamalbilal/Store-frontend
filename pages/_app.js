@@ -15,7 +15,7 @@ import {
   InsertOfferDataCount_context,
   SearchedPageData_context,
   SearchPageNumber_context,
-  SearchUrlHistory_context,
+  SearchPageNumberHistory_context,
 } from "../userContext";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
@@ -35,8 +35,8 @@ function MyApp({ Component, pageProps }) {
   const [insertDefaultInputValues, setInsertDefaultInputValues] = useState(null); // dafault value
   const [totalCount, setTotalCount] = useState(null); // dafault value
   const [searchedData, setSearchedData] = useState({}); // dafault value
-  const [pageNumber, setPageNumber] = useState(1); // dafault value
-  const [searchUrlHistory, setSearchUrlHistory] = useState({}); // dafault value
+  const [pageNumber, setPageNumber] = useState(0); // dafault value
+  const [searchPageNumberHistory, setSearchPageNumberHistory] = useState({}); // dafault value
 
   const router = useRouter();
   const forbiddenLinks = ["/register", "/login", "/register/authentication", "/login/authentication"];
@@ -79,7 +79,7 @@ function MyApp({ Component, pageProps }) {
       );
     } else {
       return (
-        <SearchUrlHistory_context.Provider value={{ searchUrlHistory, setSearchUrlHistory }}>
+        <SearchPageNumberHistory_context.Provider value={{ searchPageNumberHistory, setSearchPageNumberHistory }}>
           <SearchPageNumber_context.Provider value={{ pageNumber, setPageNumber }}>
             <SearchedPageData_context.Provider value={{ searchedData, setSearchedData }}>
               <VisitedLinksArray.Provider value={{ visitedLinksArray, setVisitedLinksArray }}>
@@ -99,7 +99,7 @@ function MyApp({ Component, pageProps }) {
               </VisitedLinksArray.Provider>
             </SearchedPageData_context.Provider>
           </SearchPageNumber_context.Provider>
-        </SearchUrlHistory_context.Provider>
+        </SearchPageNumberHistory_context.Provider>
       );
     }
   }
