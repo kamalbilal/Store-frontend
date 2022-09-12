@@ -6,7 +6,7 @@ import { FaHeart } from "react-icons/fa";
 import cn from "classnames";
 import { useRouter } from "next/router";
 
-function SearchGrid({ data, displayInGrid, titlePageSort, page, title, showNextPageAfter }) {
+function SearchGrid({ data, displayInGrid, titlePageSort, page, title, showNextPageAfter, sortby }) {
   const router = useRouter();
 
   const { searchedData, setSearchedData } = data;
@@ -32,6 +32,7 @@ function SearchGrid({ data, displayInGrid, titlePageSort, page, title, showNextP
       data: {
         title: title,
         pageNumber: pagenumber,
+        sort: sortby,
         pwd: "Kamal",
       },
     };
@@ -145,7 +146,7 @@ function SearchGrid({ data, displayInGrid, titlePageSort, page, title, showNextP
                 <div className={styles.title} title={element.title}>
                   {element.title}
                 </div>
-                <div className={styles.price}>US $22.7</div>
+                <div className={styles.price}>US ${element.maxPrice}</div>
                 <div className={styles.sold}>20 Sold</div>
                 <div className={styles.shipping}>Free Shipping</div>
               </div>

@@ -41,6 +41,7 @@ function Search({ urlTitle, urlPage, data, count, sort, countOnEveryRequest, sho
   useEffect(() => {
     setSortby(sort);
   }, [sort]);
+
   useEffect(() => {
     if (canRunUseEffect.current === true) {
       canRunUseEffect.current = false;
@@ -120,6 +121,7 @@ function Search({ urlTitle, urlPage, data, count, sort, countOnEveryRequest, sho
           page={{ pageNumber, setPageNumber }}
           title={title}
           showNextPageAfter={showNextPageAfter}
+          sort={{ sortby, setSortby }}
         />
       ) : (
         <div style={{ width: "100%", height: "100vh", display: "flex", justifyContent: "center", alignItems: "center" }}>
@@ -130,10 +132,12 @@ function Search({ urlTitle, urlPage, data, count, sort, countOnEveryRequest, sho
   );
 }
 
-export async function getServerSideProps({ query }) {
+export async function getServerSideProps({ query, req }) {
+  // console.log(req.headers.cookie);
+
   const { title } = query;
   let { page } = query;
-  let { sortby } = query;
+  let { sort } = query;
 
   if (!title) {
     return {
@@ -143,16 +147,17 @@ export async function getServerSideProps({ query }) {
   if (!page) {
     page = 1;
   }
-  if (!sortby) {
-    sortby = "bestMatch";
+  if (!sort) {
+    sort = "bestMatch";
   }
+
   let response = await fetch(`http://localhost:8000/getsearchedproducts`, {
     method: "POST",
     headers: {
       Accept: "application/json",
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ pageNumber: page, title, isServer: true }),
+    body: JSON.stringify({ pageNumber: page, title, isServer: true, sort }),
   });
   response = await response.json();
 
@@ -167,7 +172,7 @@ export async function getServerSideProps({ query }) {
   const showNextPageAfter = response.showNextPageAfter;
 
   return {
-    props: { urlTitle: title, urlPage: page, data, count, sort: sortby, countOnEveryRequest, showNextPageAfter },
+    props: { urlTitle: title, urlPage: page, data, count, sort, countOnEveryRequest, showNextPageAfter },
   };
 }
 

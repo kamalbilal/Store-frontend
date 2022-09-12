@@ -3,18 +3,13 @@ import { useState, useEffect } from "react";
 function db_tester() {
   async function getSearchedProducts(testDiv) {
     let options = {
-      url: "http://localhost:8000/getsearchedproducts",
-      method: "POST",
+      url: "http://localhost:8000/test",
+      method: "GET",
       credentials: "include",
       withCredentials: true,
       headers: {
         Accept: "application/json",
         "Content-Type": "application/json",
-      },
-      data: {
-        title: "glasses",
-        pageNumber: 1,
-        pwd: "Kamal",
       },
     };
     var startTime = performance.now();
@@ -27,17 +22,17 @@ function db_tester() {
       testDiv.append(element);
       return;
     }
-    element.innerHTML = msToTime(endTime - startTime);
+    element.innerHTML = endTime - startTime;
     testDiv.append(element);
   }
 
   useEffect(() => {
     const testDiv = document.querySelector(".testDiv");
-    setTimeout(() => {
-      for (let index = 0; index < 1000; index++) {
-        getSearchedProducts(testDiv);
-      }
-    }, 1000);
+    // setTimeout(() => {
+    //   for (let index = 0; index < 100; index++) {
+    //     getSearchedProducts(testDiv);
+    //   }
+    // }, 1000);
   }, []);
 
   function msToTime(ms) {

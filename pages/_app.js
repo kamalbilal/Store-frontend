@@ -1,4 +1,5 @@
 import "../styles/globals.css";
+import NextNProgress from "nextjs-progressbar";
 import styles from "./index.module.css";
 import Navbar from "../components/Desktop/NavBar/Navbar";
 import Footer from "../components/Desktop/Footer/Footer";
@@ -69,6 +70,7 @@ function MyApp({ Component, pageProps }) {
               <ModifyDefaultInputValues_context.Provider value={{ modifyDefaultInputValues, setModifyDefaultInputValues }}>
                 <ModifyOfferData_context.Provider value={{ modifyOfferData, setModifyOfferData }}>
                   <AdminPageData_context.Provider value={{ adminPageData, setAdminPageData }}>
+                    <NextNProgress height={6} color="#3b82f6" options={{ showSpinner: false }} />
                     <Component {...pageProps} />
                   </AdminPageData_context.Provider>
                 </ModifyOfferData_context.Provider>
@@ -90,6 +92,7 @@ function MyApp({ Component, pageProps }) {
                         <Navbar />
                       </div>
                       <div className={styles.content}>
+                        <NextNProgress height={6} color="#3b82f6" options={{ showSpinner: false }} />
                         <Component {...pageProps} />
                       </div>
                       <Footer />
